@@ -38,3 +38,8 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=
 ## Base de datos
 
 Ejecuta `supabase/schema.sql` en el SQL Editor de Supabase antes de crear usuarios.
+
+
+## Sprint 2
+
+Finanzas base implementadas: registro de ingresos, registro de gastos, categorías y dashboard MVP con datos reales del mes. Ver `docs/SPRINT_2.md`.
