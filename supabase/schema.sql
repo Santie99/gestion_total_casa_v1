@@ -12,9 +12,10 @@ create table if not exists public.families (
 create table if not exists public.family_members (
   id uuid primary key default gen_random_uuid(),
   family_id uuid not null references public.families(id) on delete cascade,
-  user_id uuid not null references auth.users(id) on delete cascade,
+  user_id uuid references auth.users(id) on delete cascade,
   full_name text not null,
   role text not null default 'member' check (role in ('admin', 'member')),
+  is_active boolean not null default true,
   created_at timestamptz not null default now(),
   unique(family_id, user_id)
 );
@@ -173,6 +174,15 @@ using (family_id in (select public.user_family_ids()));
 create policy "Users can create their own member row" on public.family_members
 for insert to authenticated
 with check (user_id = auth.uid());
+
+create policy "Family members can create internal members" on public.family_members
+for insert to authenticated
+with check (user_id is null and family_id in (select public.user_family_ids()));
+
+create policy "Family members can update members in their families" on public.family_members
+for update to authenticated
+using (family_id in (select public.user_family_ids()))
+with check (family_id in (select public.user_family_ids()));
 
 create policy "Family members can manage categories" on public.categories
 for all to authenticated

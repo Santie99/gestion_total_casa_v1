@@ -1,6 +1,9 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/server";
+import { MemberForm } from "@/modules/household/components/member-form";
+import { MemberList } from "@/modules/household/components/member-list";
 import { getCurrentFamily } from "@/modules/household/queries";
+import type { FamilyMember } from "@/modules/household/types";
 
 export default async function ConfiguracionPage() {
   const context = await getCurrentFamily();
@@ -9,7 +12,7 @@ export default async function ConfiguracionPage() {
   const [{ data: members }, { data: categories }] = await Promise.all([
     supabase
       .from("family_members")
-      .select("id, full_name, role, created_at")
+      .select("id, family_id, user_id, full_name, role, is_active, created_at")
       .eq("family_id", context.familyId)
       .order("created_at"),
     supabase
@@ -20,15 +23,17 @@ export default async function ConfiguracionPage() {
       .order("name"),
   ]);
 
+  const activeMembers = ((members ?? []) as FamilyMember[]).filter((member) => member.is_active).length;
+
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-sm text-muted-foreground">Sprint 2 · Configuración base</p>
+        <p className="text-sm text-muted-foreground">Sprint 3 · Configuración familiar</p>
         <h2 className="text-3xl font-bold tracking-tight">Configuración</h2>
-        <p className="mt-2 text-muted-foreground">Datos transversales del hogar y clasificación financiera.</p>
+        <p className="mt-2 text-muted-foreground">Administra miembros internos, familia activa y categorías transversales.</p>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-3">
         <Card>
           <CardHeader>
             <CardTitle>{context.familyName}</CardTitle>
@@ -40,28 +45,46 @@ export default async function ConfiguracionPage() {
                 <p className="text-sm font-medium">Usuario actual</p>
                 <p className="text-sm text-muted-foreground">{context.memberName} · {context.role}</p>
               </div>
-              <p className="text-sm text-muted-foreground">La edición avanzada de familia y miembros se implementará en otro sprint.</p>
+              <div className="rounded-2xl bg-slate-50 p-4">
+                <p className="text-sm font-medium">Miembros activos</p>
+                <p className="text-sm text-muted-foreground">{activeMembers} de {(members ?? []).length} creados</p>
+              </div>
             </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Miembros</CardTitle>
-            <CardDescription>Usuarios asociados a esta familia.</CardDescription>
+            <CardTitle>Crear miembro interno</CardTitle>
+            <CardDescription>Estos miembros sirven para asociar ingresos, gastos, mercado y futuros menús. No tienen login propio todavía.</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {(members ?? []).map((member) => (
-                <div key={member.id} className="flex items-center justify-between rounded-2xl border p-3 text-sm">
-                  <span className="font-medium">{member.full_name}</span>
-                  <span className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-700">{member.role}</span>
-                </div>
-              ))}
-            </div>
+            <MemberForm familyId={context.familyId} />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Regla actual</CardTitle>
+            <CardDescription>Gestión de miembros Sprint 3.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              Por ahora los miembros nuevos son internos. Más adelante se podrá convertir un miembro interno en usuario con login propio mediante invitación o asociación de cuenta.
+            </p>
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Miembros de la familia</CardTitle>
+          <CardDescription>Activa o desactiva miembros sin borrar históricos asociados.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <MemberList members={(members ?? []) as FamilyMember[]} currentMemberId={context.memberId} />
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

@@ -43,3 +43,26 @@ Ejecuta `supabase/schema.sql` en el SQL Editor de Supabase antes de crear usuari
 ## Sprint 2
 
 Finanzas base implementadas: registro de ingresos, registro de gastos, categorías y dashboard MVP con datos reales del mes. Ver `docs/SPRINT_2.md`.
+
+
+## Sprint 3
+
+Sprint 3 agrega gestión de miembros familiares internos y el primer módulo operativo de Mercado.
+
+Antes de usarlo sobre una base Supabase ya creada, ejecuta:
+
+```sql
+supabase/migrations/sprint_3.sql
+```
+
+Nuevas capacidades:
+
+- Crear miembros internos desde `/configuracion`.
+- Desactivar o reactivar miembros sin borrar históricos.
+- Crear quincenas flexibles de mercado.
+- Crear facturas manuales.
+- Registrar compras principales o esporádicas.
+- Agregar productos comprados.
+- Ver totales automáticos por compra y por quincena.
+
+Consulta `docs/SPRINT_3.md` para pruebas detalladas.
