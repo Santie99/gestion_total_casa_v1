@@ -67,7 +67,7 @@ export function MarketItemForm({
       return;
     }
 
-    if (!quantity || quantity <= 0) {
+    if (Number.isNaN(quantity) || quantity <= 0) {
       setError("La cantidad debe ser mayor que cero.");
       setLoading(false);
       return;
@@ -79,7 +79,7 @@ export function MarketItemForm({
       return;
     }
 
-    if (!totalPrice || totalPrice <= 0) {
+    if (Number.isNaN(totalPrice) || totalPrice <= 0) {
       setError("El precio total debe ser mayor que cero.");
       setLoading(false);
       return;
@@ -105,7 +105,12 @@ export function MarketItemForm({
       setSelectedProductId("");
       router.refresh();
     } catch (err) {
-      setError(getFriendlyErrorMessage(err, "No se pudo guardar el producto. Revisa cantidad, precio, compra seleccionada y conexión."));
+      setError(
+        getFriendlyErrorMessage(
+          err,
+          "No se pudo guardar el producto. Revisa cantidad, precio, compra seleccionada y conexión."
+        )
+      );
     } finally {
       setLoading(false);
     }
@@ -114,19 +119,24 @@ export function MarketItemForm({
   return (
     <form className="space-y-4" onSubmit={handleSubmit}>
       <div className="space-y-2">
-        <label className="text-sm font-medium" htmlFor="item-purchase">Compra</label>
+        <label className="text-sm font-medium" htmlFor="item-purchase">
+          Compra
+        </label>
         <Select id="item-purchase" name="market_purchase_id" defaultValue="" required>
           <option value="">Selecciona una compra</option>
           {purchases.map((purchase) => (
             <option key={purchase.id} value={purchase.id}>
-              {purchase.purchased_on} · {purchase.vendor || "Sin proveedor"} · {purchase.purchase_type === "main" ? "Principal" : "Esporádica"}
+              {purchase.purchased_on} · {purchase.vendor || "Sin proveedor"} ·{" "}
+              {purchase.purchase_type === "main" ? "Principal" : "Esporádica"}
             </option>
           ))}
         </Select>
       </div>
 
       <div className="space-y-2">
-        <label className="text-sm font-medium" htmlFor="item-product-id">Producto maestro opcional</label>
+        <label className="text-sm font-medium" htmlFor="item-product-id">
+          Producto maestro opcional
+        </label>
         <Select
           id="item-product-id"
           name="product_id"
@@ -135,42 +145,107 @@ export function MarketItemForm({
         >
           <option value="">Producto libre</option>
           {products.map((product) => (
-            <option key={product.id} value={product.id}>{product.name}</option>
+            <option key={product.id} value={product.id}>
+              {product.name}
+            </option>
           ))}
         </Select>
-        <p className="text-xs text-muted-foreground">Si eliges un producto maestro, se autocompletan nombre, categoría y unidad. Puedes editarlos antes de guardar.</p>
+        <p className="text-xs text-muted-foreground">
+          Si eliges un producto maestro, se autocompletan nombre, categoría y unidad. Puedes editarlos antes de guardar.
+        </p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
-          <label className="text-sm font-medium" htmlFor="item-product-name">Producto</label>
-          <Input id="item-product-name" name="product_name" placeholder="Ej.: Leche" defaultValue={selectedProduct?.name ?? ""} key={`name-${selectedProductId}`} required />
+          <label className="text-sm font-medium" htmlFor="item-product-name">
+            Producto
+          </label>
+          <Input
+            id="item-product-name"
+            name="product_name"
+            placeholder="Ej.: Leche"
+            defaultValue={selectedProduct?.name ?? ""}
+            key={`name-${selectedProductId}`}
+            required
+          />
         </div>
+
         <div className="space-y-2">
-          <label className="text-sm font-medium" htmlFor="item-category-name">Categoría</label>
-          <Input id="item-category-name" name="category_name" placeholder="Ej.: Lácteos" defaultValue={selectedProduct?.default_category ?? ""} key={`category-${selectedProductId}`} required />
+          <label className="text-sm font-medium" htmlFor="item-category-name">
+            Categoría
+          </label>
+          <Input
+            id="item-category-name"
+            name="category_name"
+            placeholder="Ej.: Lácteos"
+            defaultValue={selectedProduct?.default_category ?? ""}
+            key={`category-${selectedProductId}`}
+            required
+          />
         </div>
       </div>
+
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="space-y-2">
-          <label className="text-sm font-medium" htmlFor="item-quantity">Cantidad</label>
-          <Input id="item-quantity" name="quantity" type="number" min="0.001" step="0.001" placeholder="10" required />
+          <label className="text-sm font-medium" htmlFor="item-quantity">
+            Cantidad
+          </label>
+          <Input
+            id="item-quantity"
+            name="quantity"
+            type="number"
+            min="0.001"
+            step="0.001"
+            placeholder="10"
+            required
+          />
         </div>
+
         <div className="space-y-2">
-          <label className="text-sm font-medium" htmlFor="item-unit">Unidad</label>
-          <Input id="item-unit" name="unit" placeholder="bolsas, kg, litros" defaultValue={selectedProduct?.default_unit ?? ""} key={`unit-${selectedProductId}`} required />
+          <label className="text-sm font-medium" htmlFor="item-unit">
+            Unidad
+          </label>
+          <Input
+            id="item-unit"
+            name="unit"
+            placeholder="bolsas, kg, litros"
+            defaultValue={selectedProduct?.default_unit ?? ""}
+            key={`unit-${selectedProductId}`}
+            required
+          />
         </div>
+
         <div className="space-y-2">
-          <label className="text-sm font-medium" htmlFor="item-total-price">Precio total</label>
-          <Input id="item-total-price" name="total_price" type="number" min="1" step="100" placeholder="20000" required />
+          <label className="text-sm font-medium" htmlFor="item-total-price">
+            Precio total
+          </label>
+          <Input
+            id="item-total-price"
+            name="total_price"
+            type="number"
+            min="0.01"
+            step="0.01"
+            placeholder="20000"
+            required
+          />
         </div>
       </div>
+
       <label className="flex items-start gap-2 rounded-xl border p-3 text-sm">
-        <input name="updates_stock" type="checkbox" defaultChecked={selectedProduct?.is_stockable ?? true} className="mt-0.5 h-4 w-4" />
+        <input
+          name="updates_stock"
+          type="checkbox"
+          defaultChecked={selectedProduct?.is_stockable ?? true}
+          className="mt-0.5 h-4 w-4"
+        />
         <span>Este producto actualizará stock cuando se implemente inventario.</span>
       </label>
+
       {error ? <p className="rounded-xl bg-red-50 p-3 text-sm text-red-700">{error}</p> : null}
-      <Button className="w-full" disabled={loading || purchases.length === 0}>{loading ? "Guardando..." : "Agregar producto"}</Button>
+
+      <Button className="w-full" disabled={loading || purchases.length === 0}>
+        {loading ? "Guardando..." : "Agregar producto"}
+      </Button>
     </form>
   );
 }
