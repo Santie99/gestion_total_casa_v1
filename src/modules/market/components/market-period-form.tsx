@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { toDateInputValue } from "@/lib/dates";
+import { getFriendlyErrorMessage } from "@/lib/errors";
 import { createClient } from "@/lib/supabase/client";
 
 export function MarketPeriodForm({ familyId }: { familyId: string }) {
@@ -40,26 +41,27 @@ export function MarketPeriodForm({ familyId }: { familyId: string }) {
       return;
     }
 
-    const supabase = createClient();
-    const { error } = await supabase.from("market_periods").insert({
-      family_id: familyId,
-      name,
-      starts_on: startsOn,
-      ends_on: endsOn,
-      status,
-      notes: notes || null,
-      created_by: (await supabase.auth.getUser()).data.user?.id ?? null,
-    });
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.from("market_periods").insert({
+        family_id: familyId,
+        name,
+        starts_on: startsOn,
+        ends_on: endsOn,
+        status,
+        notes: notes || null,
+        created_by: (await supabase.auth.getUser()).data.user?.id ?? null,
+      });
 
-    if (error) {
-      setError(error.message);
+      if (error) throw error;
+
+      form.reset();
+      router.refresh();
+    } catch (err) {
+      setError(getFriendlyErrorMessage(err, "No se pudo crear la quincena."));
+    } finally {
       setLoading(false);
-      return;
     }
-
-    form.reset();
-    setLoading(false);
-    router.refresh();
   }
 
   return (
@@ -68,7 +70,7 @@ export function MarketPeriodForm({ familyId }: { familyId: string }) {
         <label className="text-sm font-medium" htmlFor="period-name">Nombre de la quincena</label>
         <Input id="period-name" name="name" placeholder="Ej.: Primera quincena de junio" required />
       </div>
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <label className="text-sm font-medium" htmlFor="period-starts-on">Fecha inicial</label>
           <Input id="period-starts-on" name="starts_on" type="date" defaultValue={today} required />

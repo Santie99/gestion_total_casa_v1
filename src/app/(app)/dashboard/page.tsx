@@ -1,8 +1,12 @@
+export const dynamic = "force-dynamic";
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getCurrentMonthRange } from "@/lib/dates";
 import { formatCurrency, formatPercent } from "@/lib/formatters";
 import { createClient } from "@/lib/supabase/server";
 import { getMonthlyTotals, groupEntriesByCategory } from "@/modules/finance/calculations";
+import { sumItemsByPurchase } from "@/modules/market/calculations";
+import type { MarketPeriod, MarketPurchase, MarketPurchaseItem } from "@/modules/market/types";
 import { SummaryCard } from "@/modules/finance/components/summary-card";
 import type { FinanceEntry } from "@/modules/finance/types";
 import { getCurrentFamily } from "@/modules/household/queries";
@@ -12,7 +16,7 @@ export default async function DashboardPage() {
   const supabase = await createClient();
   const month = getCurrentMonthRange();
 
-  const [{ data: incomeEntries }, { data: expenseEntries }] = await Promise.all([
+  const [{ data: incomeEntries }, { data: expenseEntries }, { data: marketPeriodsData }, { data: marketPurchasesData }] = await Promise.all([
     supabase
       .from("income_entries")
       .select("id, amount, occurred_on, description, category_id, categories(name)")
@@ -27,6 +31,17 @@ export default async function DashboardPage() {
       .gte("occurred_on", month.start)
       .lte("occurred_on", month.end)
       .order("occurred_on", { ascending: false }),
+    supabase
+      .from("market_periods")
+      .select("id, family_id, name, starts_on, ends_on, status, notes, created_at")
+      .eq("family_id", context.familyId)
+      .order("starts_on", { ascending: false })
+      .limit(1),
+    supabase
+      .from("market_purchases")
+      .select("id, family_id, market_period_id, invoice_id, purchased_on, vendor, purchase_type, notes, created_at")
+      .eq("family_id", context.familyId)
+      .order("purchased_on", { ascending: false }),
   ]);
 
   const incomes = (incomeEntries ?? []) as unknown as FinanceEntry[];
@@ -40,10 +55,28 @@ export default async function DashboardPage() {
     .sort((a, b) => b.occurred_on.localeCompare(a.occurred_on))
     .slice(0, 6);
 
+  const marketPeriods = (marketPeriodsData ?? []) as MarketPeriod[];
+  const latestMarketPeriod = marketPeriods[0] ?? null;
+  const marketPurchases = (marketPurchasesData ?? []) as MarketPurchase[];
+  const latestMarketPurchases = latestMarketPeriod
+    ? marketPurchases.filter((purchase) => purchase.market_period_id === latestMarketPeriod.id)
+    : [];
+  const latestMarketPurchaseIds = latestMarketPurchases.map((purchase) => purchase.id);
+  const { data: latestMarketItemsData } = latestMarketPurchaseIds.length
+    ? await supabase
+        .from("market_purchase_items")
+        .select("id, family_id, market_purchase_id, product_id, product_name, category_name, quantity, unit, total_price, unit_price, updates_stock, created_at")
+        .eq("family_id", context.familyId)
+        .in("market_purchase_id", latestMarketPurchaseIds)
+    : { data: [] };
+  const latestMarketItems = (latestMarketItemsData ?? []) as MarketPurchaseItem[];
+  const marketTotalsByPurchase = sumItemsByPurchase(latestMarketItems);
+  const latestMarketTotal = latestMarketPurchases.reduce((total, purchase) => total + (marketTotalsByPurchase[purchase.id] ?? 0), 0);
+
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-sm text-muted-foreground">Sprint 2 · Dashboard MVP</p>
+        <p className="text-sm text-muted-foreground">Sprint 4 · Dashboard MVP conectado a Mercado</p>
         <h2 className="text-3xl font-bold tracking-tight">Dashboard ejecutivo</h2>
         <p className="mt-2 text-muted-foreground">
           Resumen de {context.familyName} para {month.label}. Esta es la primera capa financiera real.
@@ -71,6 +104,38 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Mercado actual</CardTitle>
+          <CardDescription>Primer enlace entre la capa financiera y la operación del hogar.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {latestMarketPeriod ? (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="rounded-2xl bg-slate-50 p-4">
+                <p className="text-xs text-muted-foreground">Quincena</p>
+                <p className="mt-1 font-semibold">{latestMarketPeriod.name}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{latestMarketPeriod.starts_on} → {latestMarketPeriod.ends_on}</p>
+              </div>
+              <div className="rounded-2xl bg-slate-50 p-4">
+                <p className="text-xs text-muted-foreground">Total registrado</p>
+                <p className="mt-1 font-semibold">{formatCurrency(latestMarketTotal)}</p>
+              </div>
+              <div className="rounded-2xl bg-slate-50 p-4">
+                <p className="text-xs text-muted-foreground">Compras</p>
+                <p className="mt-1 font-semibold">{latestMarketPurchases.length}</p>
+              </div>
+              <div className="rounded-2xl bg-slate-50 p-4">
+                <p className="text-xs text-muted-foreground">Productos</p>
+                <p className="mt-1 font-semibold">{latestMarketItems.length}</p>
+              </div>
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">Crea una quincena en Mercado para ver su resumen en el dashboard.</p>
+          )}
+        </CardContent>
+      </Card>
 
       <div className="grid gap-6 xl:grid-cols-[1fr_420px]">
         <Card>

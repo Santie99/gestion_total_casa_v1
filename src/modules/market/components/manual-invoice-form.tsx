@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toDateInputValue } from "@/lib/dates";
+import { getFriendlyErrorMessage } from "@/lib/errors";
 import { createClient } from "@/lib/supabase/client";
 
 export function ManualInvoiceForm({ familyId }: { familyId: string }) {
@@ -32,25 +33,32 @@ export function ManualInvoiceForm({ familyId }: { familyId: string }) {
       return;
     }
 
-    const supabase = createClient();
-    const { error } = await supabase.from("manual_invoices").insert({
-      family_id: familyId,
-      invoice_code: invoiceCode,
-      invoice_date: invoiceDate || null,
-      vendor: vendor || null,
-      notes: notes || null,
-      created_by: (await supabase.auth.getUser()).data.user?.id ?? null,
-    });
-
-    if (error) {
-      setError(error.message);
+    if (invoiceDate && invoiceDate > today) {
+      setError("La fecha de la factura no puede ser posterior a hoy.");
       setLoading(false);
       return;
     }
 
-    form.reset();
-    setLoading(false);
-    router.refresh();
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.from("manual_invoices").insert({
+        family_id: familyId,
+        invoice_code: invoiceCode,
+        invoice_date: invoiceDate || null,
+        vendor: vendor || null,
+        notes: notes || null,
+        created_by: (await supabase.auth.getUser()).data.user?.id ?? null,
+      });
+
+      if (error) throw error;
+
+      form.reset();
+      router.refresh();
+    } catch (err) {
+      setError(getFriendlyErrorMessage(err, "No se pudo crear la factura."));
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -59,10 +67,10 @@ export function ManualInvoiceForm({ familyId }: { familyId: string }) {
         <label className="text-sm font-medium" htmlFor="invoice-code">Número único</label>
         <Input id="invoice-code" name="invoice_code" placeholder="Ej.: MERCADO-2026-Q1-001" required />
       </div>
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <label className="text-sm font-medium" htmlFor="invoice-date">Fecha</label>
-          <Input id="invoice-date" name="invoice_date" type="date" defaultValue={today} />
+          <Input id="invoice-date" name="invoice_date" type="date" defaultValue={today} max={today} />
         </div>
         <div className="space-y-2">
           <label className="text-sm font-medium" htmlFor="invoice-vendor">Lugar/proveedor</label>

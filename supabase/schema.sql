@@ -96,10 +96,24 @@ create table if not exists public.market_purchases (
   created_at timestamptz not null default now()
 );
 
+
+create table if not exists public.market_products (
+  id uuid primary key default gen_random_uuid(),
+  family_id uuid not null references public.families(id) on delete cascade,
+  name text not null,
+  default_category text,
+  default_unit text,
+  is_active boolean not null default true,
+  is_stockable boolean not null default true,
+  created_at timestamptz not null default now(),
+  unique(family_id, name)
+);
+
 create table if not exists public.market_purchase_items (
   id uuid primary key default gen_random_uuid(),
   family_id uuid not null references public.families(id) on delete cascade,
   market_purchase_id uuid not null references public.market_purchases(id) on delete cascade,
+  product_id uuid references public.market_products(id) on delete set null,
   product_name text not null,
   category_name text,
   quantity numeric(14,3) not null check (quantity > 0),
@@ -118,6 +132,7 @@ alter table public.expense_entries enable row level security;
 alter table public.manual_invoices enable row level security;
 alter table public.market_periods enable row level security;
 alter table public.market_purchases enable row level security;
+alter table public.market_products enable row level security;
 alter table public.market_purchase_items enable row level security;
 
 create or replace function public.user_family_ids()
@@ -210,6 +225,12 @@ using (family_id in (select public.user_family_ids()))
 with check (family_id in (select public.user_family_ids()));
 
 create policy "Family members can manage market purchases" on public.market_purchases
+for all to authenticated
+using (family_id in (select public.user_family_ids()))
+with check (family_id in (select public.user_family_ids()));
+
+
+create policy "Family members can manage market products" on public.market_products
 for all to authenticated
 using (family_id in (select public.user_family_ids()))
 with check (family_id in (select public.user_family_ids()));

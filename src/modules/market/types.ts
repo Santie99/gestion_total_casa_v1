@@ -1,6 +1,17 @@
 export type MarketPeriodStatus = "open" | "closed" | "historical";
 export type MarketPurchaseType = "main" | "sporadic";
 
+export type MarketProduct = {
+  id: string;
+  family_id: string;
+  name: string;
+  default_category: string | null;
+  default_unit: string | null;
+  is_active: boolean;
+  is_stockable: boolean;
+  created_at: string;
+};
+
 export type MarketPeriod = {
   id: string;
   family_id: string;
@@ -38,6 +49,7 @@ export type MarketPurchaseItem = {
   id: string;
   family_id: string;
   market_purchase_id: string;
+  product_id: string | null;
   product_name: string;
   category_name: string | null;
   quantity: number;
@@ -46,9 +58,24 @@ export type MarketPurchaseItem = {
   unit_price: number | null;
   updates_stock: boolean;
   created_at: string;
+  market_purchases?: Pick<MarketPurchase, "purchased_on" | "market_period_id"> | null;
+  market_products?: Pick<MarketProduct, "name" | "default_category" | "default_unit"> | null;
 };
 
 export type MarketPurchaseWithItems = MarketPurchase & {
   items: MarketPurchaseItem[];
   invoice?: ManualInvoice | null;
+};
+
+export type PriceHistoryRow = {
+  key: string;
+  productName: string;
+  unit: string;
+  categoryName: string | null;
+  previousPrice: number | null;
+  latestPrice: number;
+  previousDate: string | null;
+  latestDate: string;
+  variationAmount: number | null;
+  variationPercent: number | null;
 };

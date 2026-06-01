@@ -66,3 +66,24 @@ Nuevas capacidades:
 - Ver totales automáticos por compra y por quincena.
 
 Consulta `docs/SPRINT_3.md` para pruebas detalladas.
+
+
+## Sprint 4
+
+Sprint 4 estabiliza Mercado y lo prepara para Stock:
+
+- Validaciones de fechas, cantidades y precios.
+- Errores más claros.
+- Mejor responsive para uso móvil/PWA.
+- Productos maestros iniciales.
+- Asociación opcional de productos comprados con producto maestro.
+- Histórico básico de precios por producto y unidad.
+- Tarjeta de Mercado actual en Dashboard.
+
+Antes de probar, ejecutar:
+
+```txt
+supabase/migrations/sprint_4.sql
+```
+
+Ver `docs/SPRINT_4.md`.

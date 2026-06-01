@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { toDateInputValue } from "@/lib/dates";
+import { getFriendlyErrorMessage } from "@/lib/errors";
 import { createClient } from "@/lib/supabase/client";
 import type { ManualInvoice, MarketPeriod } from "../types";
 
@@ -23,6 +24,7 @@ export function MarketPurchaseForm({
 }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
+  const [warning, setWarning] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const today = toDateInputValue(new Date());
 
@@ -30,6 +32,7 @@ export function MarketPurchaseForm({
     event.preventDefault();
     setLoading(true);
     setError(null);
+    setWarning(null);
 
     const form = event.currentTarget;
     const formData = new FormData(form);
@@ -46,27 +49,39 @@ export function MarketPurchaseForm({
       return;
     }
 
-    const supabase = createClient();
-    const { error } = await supabase.from("market_purchases").insert({
-      family_id: familyId,
-      market_period_id: marketPeriodId,
-      purchased_on: purchasedOn,
-      vendor: vendor || null,
-      purchase_type: purchaseType,
-      invoice_id: invoiceId || null,
-      notes: notes || null,
-      created_by: (await supabase.auth.getUser()).data.user?.id ?? null,
-    });
-
-    if (error) {
-      setError(error.message);
+    if (purchasedOn > today) {
+      setError("La fecha de compra no puede ser posterior a hoy.");
       setLoading(false);
       return;
     }
 
-    form.reset();
-    setLoading(false);
-    router.refresh();
+    const selectedPeriod = periods.find((period) => period.id === marketPeriodId);
+    if (selectedPeriod && (purchasedOn < selectedPeriod.starts_on || purchasedOn > selectedPeriod.ends_on)) {
+      setWarning("La fecha de compra está fuera del rango de la quincena seleccionada. Se guardará de todas formas porque las quincenas pueden ser flexibles.");
+    }
+
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.from("market_purchases").insert({
+        family_id: familyId,
+        market_period_id: marketPeriodId,
+        purchased_on: purchasedOn,
+        vendor: vendor || null,
+        purchase_type: purchaseType,
+        invoice_id: invoiceId || null,
+        notes: notes || null,
+        created_by: (await supabase.auth.getUser()).data.user?.id ?? null,
+      });
+
+      if (error) throw error;
+
+      form.reset();
+      router.refresh();
+    } catch (err) {
+      setError(getFriendlyErrorMessage(err, "No se pudo crear la compra. Revisa fecha, quincena, factura y conexión."));
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -80,10 +95,10 @@ export function MarketPurchaseForm({
           ))}
         </Select>
       </div>
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <label className="text-sm font-medium" htmlFor="purchase-date">Fecha de compra</label>
-          <Input id="purchase-date" name="purchased_on" type="date" defaultValue={today} required />
+          <Input id="purchase-date" name="purchased_on" type="date" defaultValue={today} max={today} required />
         </div>
         <div className="space-y-2">
           <label className="text-sm font-medium" htmlFor="purchase-type">Tipo</label>
@@ -93,7 +108,7 @@ export function MarketPurchaseForm({
           </Select>
         </div>
       </div>
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <label className="text-sm font-medium" htmlFor="purchase-vendor">Lugar/proveedor</label>
           <Input id="purchase-vendor" name="vendor" placeholder="Ej.: Éxito, D1, plaza" />
@@ -112,6 +127,7 @@ export function MarketPurchaseForm({
         <label className="text-sm font-medium" htmlFor="purchase-notes">Notas</label>
         <Textarea id="purchase-notes" name="notes" placeholder="Ej.: compra quincenal principal" />
       </div>
+      {warning ? <p className="rounded-xl bg-amber-50 p-3 text-sm text-amber-800">{warning}</p> : null}
       {error ? <p className="rounded-xl bg-red-50 p-3 text-sm text-red-700">{error}</p> : null}
       <Button className="w-full" disabled={loading || periods.length === 0}>{loading ? "Guardando..." : "Crear compra"}</Button>
     </form>

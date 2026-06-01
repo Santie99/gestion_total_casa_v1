@@ -1,23 +1,28 @@
+export const dynamic = "force-dynamic";
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/server";
 import { formatCurrency } from "@/lib/formatters";
 import { getCurrentFamily } from "@/modules/household/queries";
-import { getPurchaseMix, sumItemsByPurchase, sumMarketItems } from "@/modules/market/calculations";
+import { getPriceHistoryRows, getPurchaseMix, sumItemsByPurchase, sumMarketItems } from "@/modules/market/calculations";
 import { ManualInvoiceForm } from "@/modules/market/components/manual-invoice-form";
 import { MarketItemForm } from "@/modules/market/components/market-item-form";
 import { MarketPeriodForm } from "@/modules/market/components/market-period-form";
 import { MarketPeriodList } from "@/modules/market/components/market-period-list";
+import { MarketProductForm } from "@/modules/market/components/market-product-form";
+import { MarketProductList } from "@/modules/market/components/market-product-list";
 import { MarketPurchaseForm } from "@/modules/market/components/market-purchase-form";
 import { MarketPurchaseList } from "@/modules/market/components/market-purchase-list";
 import { MarketSummaryCard } from "@/modules/market/components/market-summary-card";
-import type { ManualInvoice, MarketPeriod, MarketPurchase, MarketPurchaseItem, MarketPurchaseWithItems } from "@/modules/market/types";
+import { PriceHistoryList } from "@/modules/market/components/price-history-list";
+import type { ManualInvoice, MarketPeriod, MarketProduct, MarketPurchase, MarketPurchaseItem, MarketPurchaseWithItems } from "@/modules/market/types";
 
 export default async function MercadoPage({ searchParams }: { searchParams: Promise<{ period?: string }> }) {
   const context = await getCurrentFamily();
   const supabase = await createClient();
   const params = await searchParams;
 
-  const [{ data: periodsData }, { data: invoicesData }] = await Promise.all([
+  const [{ data: periodsData }, { data: invoicesData }, { data: productsData }] = await Promise.all([
     supabase
       .from("market_periods")
       .select("id, family_id, name, starts_on, ends_on, status, notes, created_at")
@@ -28,10 +33,17 @@ export default async function MercadoPage({ searchParams }: { searchParams: Prom
       .select("id, family_id, invoice_code, invoice_date, vendor, notes, created_at")
       .eq("family_id", context.familyId)
       .order("created_at", { ascending: false }),
+    supabase
+      .from("market_products")
+      .select("id, family_id, name, default_category, default_unit, is_active, is_stockable, created_at")
+      .eq("family_id", context.familyId)
+      .eq("is_active", true)
+      .order("name", { ascending: true }),
   ]);
 
   const periods = (periodsData ?? []) as MarketPeriod[];
   const invoices = (invoicesData ?? []) as ManualInvoice[];
+  const products = (productsData ?? []) as MarketProduct[];
   const selectedPeriodId = params.period && periods.some((period) => period.id === params.period)
     ? params.period
     : periods[0]?.id ?? null;
@@ -48,13 +60,13 @@ export default async function MercadoPage({ searchParams }: { searchParams: Prom
   const { data: allItemsData } = allPurchaseIds.length
     ? await supabase
         .from("market_purchase_items")
-        .select("id, family_id, market_purchase_id, product_name, category_name, quantity, unit, total_price, unit_price, updates_stock, created_at")
+        .select("id, family_id, market_purchase_id, product_id, product_name, category_name, quantity, unit, total_price, unit_price, updates_stock, created_at, market_purchases(purchased_on, market_period_id)")
         .eq("family_id", context.familyId)
         .in("market_purchase_id", allPurchaseIds)
         .order("created_at", { ascending: false })
     : { data: [] };
 
-  const allItems = (allItemsData ?? []) as MarketPurchaseItem[];
+  const allItems = (allItemsData ?? []) as unknown as MarketPurchaseItem[];
   const totalsByPurchase = sumItemsByPurchase(allItems);
   const totalsByPeriod = allPurchases.reduce<Record<string, number>>((acc, purchase) => {
     acc[purchase.market_period_id] = (acc[purchase.market_period_id] ?? 0) + (totalsByPurchase[purchase.id] ?? 0);
@@ -77,16 +89,17 @@ export default async function MercadoPage({ searchParams }: { searchParams: Prom
   const selectedTotal = sumMarketItems(selectedItems);
   const purchaseMix = getPurchaseMix(selectedPurchases);
   const averagePurchase = selectedPurchases.length ? selectedTotal / selectedPurchases.length : 0;
+  const priceHistoryRows = getPriceHistoryRows(allItems);
 
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-sm text-muted-foreground">Sprint 3 · Mercado operativo base</p>
-        <h2 className="text-3xl font-bold tracking-tight">Mercado</h2>
-        <p className="mt-2 text-muted-foreground">Quincenas flexibles, facturas manuales, compras y productos comprados.</p>
+        <p className="text-sm text-muted-foreground">Sprint 4 · Mercado estable, responsive y con precios</p>
+        <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Mercado</h2>
+        <p className="mt-2 text-sm text-muted-foreground sm:text-base">Quincenas flexibles, facturas, compras, productos maestros e histórico básico de precios.</p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <MarketSummaryCard title="Total quincena" value={formatCurrency(selectedTotal)} description={selectedPeriod?.name ?? "Crea una quincena para empezar."} />
         <MarketSummaryCard title="Compras" value={String(selectedPurchases.length)} description={`${purchaseMix.main} principales · ${purchaseMix.sporadic} esporádicas`} />
         <MarketSummaryCard title="Productos" value={String(selectedItems.length)} description="Productos registrados en la quincena seleccionada." />
@@ -112,6 +125,17 @@ export default async function MercadoPage({ searchParams }: { searchParams: Prom
             </CardHeader>
             <CardContent>
               <MarketPeriodList periods={periods} selectedPeriodId={selectedPeriodId} totalsByPeriod={totalsByPeriod} />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Productos maestros</CardTitle>
+              <CardDescription>Normaliza productos para comparar precios y preparar stock.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-5">
+              <MarketProductForm familyId={context.familyId} />
+              <MarketProductList products={products} />
             </CardContent>
           </Card>
         </div>
@@ -145,7 +169,7 @@ export default async function MercadoPage({ searchParams }: { searchParams: Prom
               <CardDescription>El precio unitario se calcula automáticamente desde cantidad y precio total.</CardDescription>
             </CardHeader>
             <CardContent>
-              <MarketItemForm familyId={context.familyId} purchases={selectedPurchases} />
+              <MarketItemForm familyId={context.familyId} purchases={selectedPurchases} products={products} />
             </CardContent>
           </Card>
 
@@ -156,6 +180,16 @@ export default async function MercadoPage({ searchParams }: { searchParams: Prom
             </CardHeader>
             <CardContent>
               <MarketPurchaseList purchases={selectedPurchasesWithItems} />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Histórico de precios básico</CardTitle>
+              <CardDescription>Comparación automática por producto y misma unidad. No hace conversiones entre unidades todavía.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <PriceHistoryList rows={priceHistoryRows} />
             </CardContent>
           </Card>
         </div>
