@@ -87,3 +87,23 @@ supabase/migrations/sprint_4.sql
 ```
 
 Ver `docs/SPRINT_4.md`.
+
+
+## Sprint 5
+
+Sprint 5 agrega Stock en casa y mejora el Histórico de precios:
+
+- Stock inicial manual.
+- Entradas automáticas desde compras de Mercado.
+- Consumos y ajustes manuales.
+- Movimientos recientes de stock.
+- Alertas simples de stock bajo/ag completamente agotado.
+- Histórico de precios completo por producto y unidad.
+
+Antes de probar, ejecutar:
+
+```txt
+supabase/migrations/sprint_5.sql
+```
+
+Consulta `docs/SPRINT_5.md` para pruebas detalladas.

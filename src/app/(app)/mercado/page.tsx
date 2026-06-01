@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { createClient } from "@/lib/supabase/server";
 import { formatCurrency } from "@/lib/formatters";
 import { getCurrentFamily } from "@/modules/household/queries";
-import { getPriceHistoryRows, getPurchaseMix, sumItemsByPurchase, sumMarketItems } from "@/modules/market/calculations";
+import { getPriceHistoryRows, getPurchaseMix, getStockStats, sumItemsByPurchase, sumMarketItems } from "@/modules/market/calculations";
 import { ManualInvoiceForm } from "@/modules/market/components/manual-invoice-form";
 import { MarketItemForm } from "@/modules/market/components/market-item-form";
 import { MarketPeriodForm } from "@/modules/market/components/market-period-form";
@@ -15,14 +15,19 @@ import { MarketPurchaseForm } from "@/modules/market/components/market-purchase-
 import { MarketPurchaseList } from "@/modules/market/components/market-purchase-list";
 import { MarketSummaryCard } from "@/modules/market/components/market-summary-card";
 import { PriceHistoryList } from "@/modules/market/components/price-history-list";
-import type { ManualInvoice, MarketPeriod, MarketProduct, MarketPurchase, MarketPurchaseItem, MarketPurchaseWithItems } from "@/modules/market/types";
+import { StockItemForm } from "@/modules/market/components/stock-item-form";
+import { StockItemList } from "@/modules/market/components/stock-item-list";
+import { StockMovementForm } from "@/modules/market/components/stock-movement-form";
+import { StockMovementList } from "@/modules/market/components/stock-movement-list";
+import { StockSummaryCard } from "@/modules/market/components/stock-summary-card";
+import type { ManualInvoice, MarketPeriod, MarketProduct, MarketPurchase, MarketPurchaseItem, MarketPurchaseWithItems, StockItem, StockMovement } from "@/modules/market/types";
 
 export default async function MercadoPage({ searchParams }: { searchParams: Promise<{ period?: string }> }) {
   const context = await getCurrentFamily();
   const supabase = await createClient();
   const params = await searchParams;
 
-  const [{ data: periodsData }, { data: invoicesData }, { data: productsData }] = await Promise.all([
+  const [{ data: periodsData }, { data: invoicesData }, { data: productsData }, { data: stockData }, { data: stockMovementsData }] = await Promise.all([
     supabase
       .from("market_periods")
       .select("id, family_id, name, starts_on, ends_on, status, notes, created_at")
@@ -39,11 +44,25 @@ export default async function MercadoPage({ searchParams }: { searchParams: Prom
       .eq("family_id", context.familyId)
       .eq("is_active", true)
       .order("name", { ascending: true }),
+    supabase
+      .from("stock_items")
+      .select("id, family_id, product_id, product_name, category_name, unit, quantity, min_quantity, is_active, last_updated_at, created_at")
+      .eq("family_id", context.familyId)
+      .eq("is_active", true)
+      .order("product_name", { ascending: true }),
+    supabase
+      .from("stock_movements")
+      .select("id, family_id, stock_item_id, movement_type, quantity_delta, quantity_after, source_purchase_item_id, notes, occurred_on, created_at, stock_items(product_name, unit)")
+      .eq("family_id", context.familyId)
+      .order("created_at", { ascending: false })
+      .limit(20),
   ]);
 
   const periods = (periodsData ?? []) as MarketPeriod[];
   const invoices = (invoicesData ?? []) as ManualInvoice[];
   const products = (productsData ?? []) as MarketProduct[];
+  const stockItems = (stockData ?? []) as StockItem[];
+  const stockMovements = (stockMovementsData ?? []) as unknown as StockMovement[];
   const selectedPeriodId = params.period && periods.some((period) => period.id === params.period)
     ? params.period
     : periods[0]?.id ?? null;
@@ -89,14 +108,15 @@ export default async function MercadoPage({ searchParams }: { searchParams: Prom
   const selectedTotal = sumMarketItems(selectedItems);
   const purchaseMix = getPurchaseMix(selectedPurchases);
   const averagePurchase = selectedPurchases.length ? selectedTotal / selectedPurchases.length : 0;
-  const priceHistoryRows = getPriceHistoryRows(allItems);
+  const priceHistoryRows = getPriceHistoryRows(allItems, periods);
+  const stockStats = getStockStats(stockItems);
 
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-sm text-muted-foreground">Sprint 4 · Mercado estable, responsive y con precios</p>
+        <p className="text-sm text-muted-foreground">Sprint 5 · Mercado, precios completos y stock</p>
         <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Mercado</h2>
-        <p className="mt-2 text-sm text-muted-foreground sm:text-base">Quincenas flexibles, facturas, compras, productos maestros e histórico básico de precios.</p>
+        <p className="mt-2 text-sm text-muted-foreground sm:text-base">Quincenas flexibles, facturas, productos maestros, histórico completo de precios y stock en casa.</p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -104,6 +124,13 @@ export default async function MercadoPage({ searchParams }: { searchParams: Prom
         <MarketSummaryCard title="Compras" value={String(selectedPurchases.length)} description={`${purchaseMix.main} principales · ${purchaseMix.sporadic} esporádicas`} />
         <MarketSummaryCard title="Productos" value={String(selectedItems.length)} description="Productos registrados en la quincena seleccionada." />
         <MarketSummaryCard title="Promedio por compra" value={formatCurrency(averagePurchase)} description="Total de la quincena dividido en compras registradas." />
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <StockSummaryCard title="Stock activo" value={String(stockStats.total)} description="Productos con inventario activo en casa." />
+        <StockSummaryCard title="Stock bajo" value={String(stockStats.low)} description="Productos en o por debajo del mínimo definido." />
+        <StockSummaryCard title="Agotados" value={String(stockStats.empty)} description="Productos con cantidad disponible igual a cero." />
+        <StockSummaryCard title="Stock sano" value={String(stockStats.healthy)} description="Productos por encima de su mínimo." />
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[360px_1fr]">
@@ -136,6 +163,16 @@ export default async function MercadoPage({ searchParams }: { searchParams: Prom
             <CardContent className="space-y-5">
               <MarketProductForm familyId={context.familyId} />
               <MarketProductList products={products} />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Stock inicial</CardTitle>
+              <CardDescription>Crea inventario manual para productos que ya tienes en casa.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <StockItemForm familyId={context.familyId} products={products} />
             </CardContent>
           </Card>
         </div>
@@ -183,10 +220,42 @@ export default async function MercadoPage({ searchParams }: { searchParams: Prom
             </CardContent>
           </Card>
 
+          <div className="grid gap-6 lg:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>Stock en casa</CardTitle>
+                <CardDescription>Inventario actual. Las compras marcadas para stock entran automáticamente.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <StockItemList items={stockItems} />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Movimiento de stock</CardTitle>
+                <CardDescription>Registra consumos, salidas o ajustes manuales.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <StockMovementForm familyId={context.familyId} stockItems={stockItems} />
+              </CardContent>
+            </Card>
+          </div>
+
           <Card>
             <CardHeader>
-              <CardTitle>Histórico de precios básico</CardTitle>
-              <CardDescription>Comparación automática por producto y misma unidad. No hace conversiones entre unidades todavía.</CardDescription>
+              <CardTitle>Movimientos recientes de stock</CardTitle>
+              <CardDescription>Entradas automáticas desde compras, stock inicial y consumos manuales.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <StockMovementList movements={stockMovements} />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Histórico de precios por producto</CardTitle>
+              <CardDescription>Detalle completo por producto y misma unidad. Cada fila muestra variación frente a la compra anterior.</CardDescription>
             </CardHeader>
             <CardContent>
               <PriceHistoryList rows={priceHistoryRows} />

@@ -87,19 +87,83 @@ export function MarketItemForm({
 
     try {
       const supabase = createClient();
-      const { error } = await supabase.from("market_purchase_items").insert({
-        family_id: familyId,
-        market_purchase_id: marketPurchaseId,
-        product_id: productId || null,
-        product_name: productName,
-        category_name: categoryName,
-        quantity,
-        unit,
-        total_price: totalPrice,
-        updates_stock: updatesStock,
-      });
+      const { data: createdItem, error } = await supabase
+        .from("market_purchase_items")
+        .insert({
+          family_id: familyId,
+          market_purchase_id: marketPurchaseId,
+          product_id: productId || null,
+          product_name: productName,
+          category_name: categoryName,
+          quantity,
+          unit,
+          total_price: totalPrice,
+          updates_stock: updatesStock,
+        })
+        .select("id")
+        .single();
 
       if (error) throw error;
+
+      if (updatesStock) {
+        let stockQuery = supabase
+          .from("stock_items")
+          .select("id, quantity")
+          .eq("family_id", familyId)
+          .eq("unit", unit)
+          .limit(1);
+
+        stockQuery = productId
+          ? stockQuery.eq("product_id", productId)
+          : stockQuery.eq("product_name", productName);
+
+        const { data: existingStock, error: stockLookupError } = await stockQuery.maybeSingle();
+        if (stockLookupError) throw stockLookupError;
+
+        const currentQuantity = Number(existingStock?.quantity ?? 0);
+        const nextQuantity = currentQuantity + quantity;
+        let stockItemId = existingStock?.id as string | undefined;
+
+        if (stockItemId) {
+          const { error: updateStockError } = await supabase
+            .from("stock_items")
+            .update({ quantity: nextQuantity, last_updated_at: new Date().toISOString() })
+            .eq("id", stockItemId)
+            .eq("family_id", familyId);
+
+          if (updateStockError) throw updateStockError;
+        } else {
+          const { data: createdStock, error: createStockError } = await supabase
+            .from("stock_items")
+            .insert({
+              family_id: familyId,
+              product_id: productId || null,
+              product_name: productName,
+              category_name: categoryName || null,
+              unit,
+              quantity,
+              min_quantity: 0,
+            })
+            .select("id")
+            .single();
+
+          if (createStockError) throw createStockError;
+          stockItemId = createdStock.id;
+        }
+
+        const { error: movementError } = await supabase.from("stock_movements").insert({
+          family_id: familyId,
+          stock_item_id: stockItemId,
+          movement_type: "purchase_in",
+          quantity_delta: quantity,
+          quantity_after: nextQuantity,
+          source_purchase_item_id: createdItem.id,
+          notes: "Entrada automática desde compra de mercado.",
+          occurred_on: selectedPurchase?.purchased_on ?? today,
+        });
+
+        if (movementError) throw movementError;
+      }
 
       form.reset();
       setSelectedProductId("");

@@ -1,5 +1,6 @@
 export type MarketPeriodStatus = "open" | "closed" | "historical";
 export type MarketPurchaseType = "main" | "sporadic";
+export type StockMovementType = "initial" | "purchase_in" | "consume" | "adjustment";
 
 export type MarketProduct = {
   id: string;
@@ -67,6 +68,18 @@ export type MarketPurchaseWithItems = MarketPurchase & {
   invoice?: ManualInvoice | null;
 };
 
+export type PriceHistoryRecord = {
+  id: string;
+  purchasedOn: string;
+  periodName: string | null;
+  quantity: number;
+  unit: string;
+  totalPrice: number;
+  unitPrice: number;
+  variationAmount: number | null;
+  variationPercent: number | null;
+};
+
 export type PriceHistoryRow = {
   key: string;
   productName: string;
@@ -78,4 +91,33 @@ export type PriceHistoryRow = {
   latestDate: string;
   variationAmount: number | null;
   variationPercent: number | null;
+  records: PriceHistoryRecord[];
+};
+
+export type StockItem = {
+  id: string;
+  family_id: string;
+  product_id: string | null;
+  product_name: string;
+  category_name: string | null;
+  unit: string;
+  quantity: number;
+  min_quantity: number;
+  is_active: boolean;
+  last_updated_at: string;
+  created_at: string;
+};
+
+export type StockMovement = {
+  id: string;
+  family_id: string;
+  stock_item_id: string;
+  movement_type: StockMovementType;
+  quantity_delta: number;
+  quantity_after: number;
+  source_purchase_item_id: string | null;
+  notes: string | null;
+  occurred_on: string;
+  created_at: string;
+  stock_items?: Pick<StockItem, "product_name" | "unit"> | null;
 };
