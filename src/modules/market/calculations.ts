@@ -30,7 +30,11 @@ export function getPurchaseMix(purchases: MarketPurchase[]) {
 }
 
 function normalizeText(value: string) {
-  return value.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  return value
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
 }
 
 export function getPriceHistoryRows(items: MarketPurchaseItem[]): PriceHistoryRow[] {
@@ -38,9 +42,7 @@ export function getPriceHistoryRows(items: MarketPurchaseItem[]): PriceHistoryRo
     .filter((item) => Number(item.quantity) > 0 && Number(item.unit_price ?? 0) > 0)
     .map((item) => ({
       ...item,
-      normalizedKey: item.product_id
-        ? `${item.product_id}::${normalizeText(item.unit)}`
-        : `${normalizeText(item.product_name)}::${normalizeText(item.unit)}`,
+      normalizedKey: `${normalizeText(item.product_name)}::${normalizeText(item.unit)}`,
       purchasedOn: item.market_purchases?.purchased_on ?? item.created_at.slice(0, 10),
     }))
     .sort((a, b) => a.purchasedOn.localeCompare(b.purchasedOn) || a.created_at.localeCompare(b.created_at));
