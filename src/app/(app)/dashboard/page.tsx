@@ -4,21 +4,43 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { getCurrentMonthRange } from "@/lib/dates";
 import { formatCurrency, formatPercent } from "@/lib/formatters";
 import { createClient } from "@/lib/supabase/server";
-import { getMonthlyTotals, groupEntriesByCategory } from "@/modules/finance/calculations";
-import { sumItemsByPurchase } from "@/modules/market/calculations";
-import { getUpcomingReminders, sumCarExpenses } from "@/modules/car/calculations";
-import type { MarketPeriod, MarketPurchase, MarketPurchaseItem } from "@/modules/market/types";
-import type { CarExpense, CarReminder } from "@/modules/car/types";
+import {
+  getBudgetExecutions,
+  getBudgetStatusLabel,
+  getConsolidatedExpenseLayers,
+  getMonthlyTotals,
+  getSavingsRate,
+  groupEntriesByCategory,
+  sumConsolidatedExpenses,
+  sumEntries,
+} from "@/modules/finance/calculations";
+import type { FinanceEntry, MonthlyBudget } from "@/modules/finance/types";
 import { SummaryCard } from "@/modules/finance/components/summary-card";
-import type { FinanceEntry } from "@/modules/finance/types";
+import { sumItemsByPurchase } from "@/modules/market/calculations";
+import type { MarketPurchase, MarketPurchaseItem } from "@/modules/market/types";
+import { getUpcomingReminders, sumCarExpenses } from "@/modules/car/calculations";
+import type { CarExpense, CarReminder } from "@/modules/car/types";
 import { getCurrentFamily } from "@/modules/household/queries";
+
+function budgetStatusClass(status: "healthy" | "warning" | "exceeded") {
+  if (status === "exceeded") return "text-red-700";
+  if (status === "warning") return "text-amber-700";
+  return "text-emerald-700";
+}
 
 export default async function DashboardPage() {
   const context = await getCurrentFamily();
   const supabase = await createClient();
   const month = getCurrentMonthRange();
 
-  const [{ data: incomeEntries }, { data: expenseEntries }, { data: marketPeriodsData }, { data: marketPurchasesData }, { data: carExpensesData }, { data: carRemindersData }] = await Promise.all([
+  const [
+    { data: incomeEntries },
+    { data: manualExpenseEntries },
+    { data: marketPurchasesData },
+    { data: carExpensesData },
+    { data: carRemindersData },
+    { data: budgetsData },
+  ] = await Promise.all([
     supabase
       .from("income_entries")
       .select("id, amount, occurred_on, description, category_id, categories(name)")
@@ -30,19 +52,16 @@ export default async function DashboardPage() {
       .from("expense_entries")
       .select("id, amount, occurred_on, description, category_id, categories(name)")
       .eq("family_id", context.familyId)
+      .eq("source_module", "manual")
       .gte("occurred_on", month.start)
       .lte("occurred_on", month.end)
       .order("occurred_on", { ascending: false }),
     supabase
-      .from("market_periods")
-      .select("id, family_id, name, starts_on, ends_on, status, notes, created_at")
-      .eq("family_id", context.familyId)
-      .order("starts_on", { ascending: false })
-      .limit(1),
-    supabase
       .from("market_purchases")
       .select("id, family_id, market_period_id, invoice_id, purchased_on, vendor, purchase_type, notes, created_at")
       .eq("family_id", context.familyId)
+      .gte("purchased_on", month.start)
+      .lte("purchased_on", month.end)
       .order("purchased_on", { ascending: false }),
     supabase
       .from("car_expenses")
@@ -56,124 +75,104 @@ export default async function DashboardPage() {
       .select("id, family_id, vehicle_id, title, category, due_on, due_km, status, notes, created_at")
       .eq("family_id", context.familyId)
       .eq("status", "pending"),
+    supabase
+      .from("monthly_budgets")
+      .select("id, family_id, budget_month, scope, category_name, amount, notes, created_at")
+      .eq("family_id", context.familyId)
+      .eq("budget_month", month.monthStart)
+      .order("created_at", { ascending: false }),
   ]);
 
   const incomes = (incomeEntries ?? []) as unknown as FinanceEntry[];
-  const expenses = (expenseEntries ?? []) as unknown as FinanceEntry[];
-  const totals = getMonthlyTotals(incomes, expenses);
-  const expenseCategories = groupEntriesByCategory(expenses).slice(0, 6);
-  const latestMovements = [
-    ...incomes.map((entry) => ({ ...entry, type: "income" as const })),
-    ...expenses.map((entry) => ({ ...entry, type: "expense" as const })),
-  ]
-    .sort((a, b) => b.occurred_on.localeCompare(a.occurred_on))
-    .slice(0, 6);
-
-  const marketPeriods = (marketPeriodsData ?? []) as MarketPeriod[];
-  const latestMarketPeriod = marketPeriods[0] ?? null;
+  const manualExpenses = (manualExpenseEntries ?? []) as unknown as FinanceEntry[];
   const marketPurchases = (marketPurchasesData ?? []) as MarketPurchase[];
-  const latestMarketPurchases = latestMarketPeriod
-    ? marketPurchases.filter((purchase) => purchase.market_period_id === latestMarketPeriod.id)
-    : [];
-  const latestMarketPurchaseIds = latestMarketPurchases.map((purchase) => purchase.id);
-  const { data: latestMarketItemsData } = latestMarketPurchaseIds.length
+  const marketPurchaseIds = marketPurchases.map((purchase) => purchase.id);
+  const { data: marketItemsData } = marketPurchaseIds.length
     ? await supabase
         .from("market_purchase_items")
         .select("id, family_id, market_purchase_id, product_id, product_name, category_name, quantity, unit, total_price, unit_price, updates_stock, created_at")
         .eq("family_id", context.familyId)
-        .in("market_purchase_id", latestMarketPurchaseIds)
+        .in("market_purchase_id", marketPurchaseIds)
     : { data: [] };
-  const latestMarketItems = (latestMarketItemsData ?? []) as MarketPurchaseItem[];
-  const marketTotalsByPurchase = sumItemsByPurchase(latestMarketItems);
-  const latestMarketTotal = latestMarketPurchases.reduce((total, purchase) => total + (marketTotalsByPurchase[purchase.id] ?? 0), 0);
+
+  const marketItems = (marketItemsData ?? []) as MarketPurchaseItem[];
+  const marketTotalsByPurchase = sumItemsByPurchase(marketItems);
+  const marketMonthTotal = marketPurchases.reduce((total, purchase) => total + (marketTotalsByPurchase[purchase.id] ?? 0), 0);
   const carExpenses = (carExpensesData ?? []) as unknown as CarExpense[];
   const carReminders = getUpcomingReminders((carRemindersData ?? []) as unknown as CarReminder[]);
   const carMonthTotal = sumCarExpenses(carExpenses);
+  const manualMonthTotal = sumEntries(manualExpenses);
+  const layers = getConsolidatedExpenseLayers({ manualExpenses: manualMonthTotal, marketExpenses: marketMonthTotal, carExpenses: carMonthTotal });
+  const consolidatedExpenses = sumConsolidatedExpenses(layers);
+  const incomeTotal = sumEntries(incomes);
+  const consolidatedNetFlow = incomeTotal - consolidatedExpenses;
+  const consolidatedSavingsRate = getSavingsRate(incomeTotal, consolidatedNetFlow);
+  const manualTotals = getMonthlyTotals(incomes, manualExpenses);
+  const manualExpenseCategories = groupEntriesByCategory(manualExpenses).slice(0, 5);
+  const budgets = (budgetsData ?? []) as unknown as MonthlyBudget[];
+  const budgetExecutions = getBudgetExecutions(budgets, {
+    total: consolidatedExpenses,
+    manual: manualMonthTotal,
+    market: marketMonthTotal,
+    car: carMonthTotal,
+  }).slice(0, 4);
+  const latestMovements = [
+    ...incomes.map((entry) => ({ ...entry, type: "income" as const })),
+    ...manualExpenses.map((entry) => ({ ...entry, type: "expense" as const })),
+  ]
+    .sort((a, b) => b.occurred_on.localeCompare(a.occurred_on))
+    .slice(0, 6);
 
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-sm text-muted-foreground">Sprint 6 · Dashboard MVP conectado a Mercado y Carro</p>
+        <p className="text-sm text-muted-foreground">Sprint 7 · Dashboard financiero consolidado</p>
         <h2 className="text-3xl font-bold tracking-tight">Dashboard ejecutivo</h2>
         <p className="mt-2 text-muted-foreground">
-          Resumen de {context.familyName} para {month.label}. Esta es la primera capa financiera real.
+          Resumen de {context.familyName} para {month.label}. Integra gastos manuales, Mercado y Carro sin duplicarlos en gastos generales.
         </p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <SummaryCard title="Ingresos del mes" value={totals.income} description="Entradas registradas con fecha real dentro del mes." tone="positive" />
-        <SummaryCard title="Gastos del mes" value={totals.expenses} description="Salidas registradas. Incluye gastos manuales y futuros módulos operativos." tone="negative" />
+        <SummaryCard title="Ingresos del mes" value={incomeTotal} description="Entradas registradas con fecha real dentro del mes." tone="positive" />
+        <SummaryCard title="Gasto consolidado" value={consolidatedExpenses} description="Manual + Mercado + Carro. Esta es la lectura real del gasto mensual." tone="negative" />
         <SummaryCard
-          title="Flujo neto"
-          value={totals.netFlow}
-          description="Ingresos menos gastos. Es la base del Free Cash Flow Familiar."
-          tone={totals.netFlow >= 0 ? "positive" : "negative"}
+          title="Flujo neto consolidado"
+          value={consolidatedNetFlow}
+          description="Ingresos menos gasto consolidado. Base del Free Cash Flow Familiar."
+          tone={consolidatedNetFlow >= 0 ? "positive" : "negative"}
         />
         <Card>
           <CardHeader>
-            <CardDescription>Tasa de ahorro</CardDescription>
-            <CardTitle className={totals.savingsRate >= 0 ? "text-2xl text-emerald-700" : "text-2xl text-red-700"}>
-              {formatPercent(totals.savingsRate)}
+            <CardDescription>Tasa de ahorro real</CardDescription>
+            <CardTitle className={consolidatedSavingsRate >= 0 ? "text-2xl text-emerald-700" : "text-2xl text-red-700"}>
+              {formatPercent(consolidatedSavingsRate)}
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground">Flujo neto dividido entre ingresos. Si es negativa, el hogar gastó más de lo que entró.</p>
+            <p className="text-sm text-muted-foreground">Flujo neto consolidado dividido entre ingresos.</p>
           </CardContent>
         </Card>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Mercado actual</CardTitle>
-          <CardDescription>Primer enlace entre la capa financiera y la operación del hogar.</CardDescription>
+          <CardTitle>Consolidación financiera operativa</CardTitle>
+          <CardDescription>Separa las capas para evitar doble conteo: lo operativo se suma al dashboard, pero no se duplica en gastos manuales.</CardDescription>
         </CardHeader>
         <CardContent>
-          {latestMarketPeriod ? (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <div className="rounded-2xl bg-slate-50 p-4">
-                <p className="text-xs text-muted-foreground">Quincena</p>
-                <p className="mt-1 font-semibold">{latestMarketPeriod.name}</p>
-                <p className="mt-1 text-xs text-muted-foreground">{latestMarketPeriod.starts_on} → {latestMarketPeriod.ends_on}</p>
-              </div>
-              <div className="rounded-2xl bg-slate-50 p-4">
-                <p className="text-xs text-muted-foreground">Total registrado</p>
-                <p className="mt-1 font-semibold">{formatCurrency(latestMarketTotal)}</p>
-              </div>
-              <div className="rounded-2xl bg-slate-50 p-4">
-                <p className="text-xs text-muted-foreground">Compras</p>
-                <p className="mt-1 font-semibold">{latestMarketPurchases.length}</p>
-              </div>
-              <div className="rounded-2xl bg-slate-50 p-4">
-                <p className="text-xs text-muted-foreground">Productos</p>
-                <p className="mt-1 font-semibold">{latestMarketItems.length}</p>
-              </div>
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">Crea una quincena en Mercado para ver su resumen en el dashboard.</p>
-          )}
-        </CardContent>
-      </Card>
-
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Carro actual</CardTitle>
-          <CardDescription>Primer resumen operativo del vehículo dentro del dashboard ejecutivo.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 sm:grid-cols-3">
-            <div className="rounded-2xl bg-slate-50 p-4">
-              <p className="text-xs text-muted-foreground">Gasto del mes</p>
-              <p className="mt-1 font-semibold">{formatCurrency(carMonthTotal)}</p>
-            </div>
-            <div className="rounded-2xl bg-slate-50 p-4">
-              <p className="text-xs text-muted-foreground">Registros</p>
-              <p className="mt-1 font-semibold">{carExpenses.length}</p>
-            </div>
-            <div className="rounded-2xl bg-slate-50 p-4">
-              <p className="text-xs text-muted-foreground">Pendientes</p>
-              <p className="mt-1 font-semibold">{carReminders.length}</p>
-            </div>
+          <div className="grid gap-4 md:grid-cols-3">
+            {layers.map((layer) => {
+              const percentage = consolidatedExpenses > 0 ? layer.amount / consolidatedExpenses : 0;
+              return (
+                <div key={layer.key} className="rounded-2xl border bg-slate-50 p-4">
+                  <p className="text-sm font-semibold">{layer.label}</p>
+                  <p className="mt-2 text-2xl font-bold">{formatCurrency(layer.amount)}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{formatPercent(percentage)} del gasto consolidado.</p>
+                  <p className="mt-3 text-xs text-muted-foreground">{layer.description}</p>
+                </div>
+              );
+            })}
           </div>
         </CardContent>
       </Card>
@@ -181,14 +180,71 @@ export default async function DashboardPage() {
       <div className="grid gap-6 xl:grid-cols-[1fr_420px]">
         <Card>
           <CardHeader>
-            <CardTitle>Gasto por categoría</CardTitle>
-            <CardDescription>Primer análisis de concentración de gasto.</CardDescription>
+            <CardTitle>Ejecución presupuestal</CardTitle>
+            <CardDescription>Primer control de presupuesto mensual por capa financiera.</CardDescription>
           </CardHeader>
           <CardContent>
-            {expenseCategories.length ? (
+            {budgetExecutions.length ? (
+              <div className="space-y-3">
+                {budgetExecutions.map((execution) => (
+                  <div key={execution.id} className="rounded-2xl border p-4">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                      <div>
+                        <p className="font-semibold">{execution.label}</p>
+                        <p className="text-xs text-muted-foreground">Presupuesto {formatCurrency(execution.budgeted)} · Real {formatCurrency(execution.actual)}</p>
+                      </div>
+                      <p className={`text-sm font-semibold ${budgetStatusClass(execution.status)}`}>{getBudgetStatusLabel(execution.status)}</p>
+                    </div>
+                    <div className="mt-3 h-2 rounded-full bg-slate-100">
+                      <div className="h-2 rounded-full bg-slate-900" style={{ width: `${Math.min(execution.usageRate * 100, 100)}%` }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">Crea presupuestos en /presupuestos para ver ejecución en el dashboard.</p>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Resumen operativo</CardTitle>
+            <CardDescription>Mercado y Carro dentro del mes actual.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div className="rounded-2xl bg-slate-50 p-4">
+                <p className="text-xs text-muted-foreground">Mercado</p>
+                <p className="mt-1 font-semibold">{formatCurrency(marketMonthTotal)}</p>
+                <p className="text-xs text-muted-foreground">{marketPurchases.length} compras · {marketItems.length} productos.</p>
+              </div>
+              <div className="rounded-2xl bg-slate-50 p-4">
+                <p className="text-xs text-muted-foreground">Carro</p>
+                <p className="mt-1 font-semibold">{formatCurrency(carMonthTotal)}</p>
+                <p className="text-xs text-muted-foreground">{carExpenses.length} gastos · {carReminders.length} pendientes.</p>
+              </div>
+              <div className="rounded-2xl bg-slate-50 p-4">
+                <p className="text-xs text-muted-foreground">Solo gastos manuales</p>
+                <p className="mt-1 font-semibold">{formatCurrency(manualTotals.expenses)}</p>
+                <p className="text-xs text-muted-foreground">Se mantiene separado para evitar duplicar Mercado o Carro.</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid gap-6 xl:grid-cols-[1fr_420px]">
+        <Card>
+          <CardHeader>
+            <CardTitle>Gasto manual por categoría</CardTitle>
+            <CardDescription>Solo incluye gastos cargados directamente en la sección Gastos.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {manualExpenseCategories.length ? (
               <div className="space-y-4">
-                {expenseCategories.map((category) => {
-                  const percentage = totals.expenses > 0 ? category.amount / totals.expenses : 0;
+                {manualExpenseCategories.map((category) => {
+                  const percentage = manualMonthTotal > 0 ? category.amount / manualMonthTotal : 0;
                   return (
                     <div key={category.name} className="space-y-2">
                       <div className="flex items-center justify-between gap-3 text-sm">
@@ -203,15 +259,15 @@ export default async function DashboardPage() {
                 })}
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground">Registra gastos para ver la distribución por categoría.</p>
+              <p className="text-sm text-muted-foreground">Registra gastos manuales para ver la distribución por categoría.</p>
             )}
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Últimos movimientos</CardTitle>
-            <CardDescription>Ingresos y gastos más recientes del mes.</CardDescription>
+            <CardTitle>Últimos movimientos manuales</CardTitle>
+            <CardDescription>Ingresos y gastos manuales más recientes del mes.</CardDescription>
           </CardHeader>
           <CardContent>
             {latestMovements.length ? (
@@ -238,21 +294,27 @@ export default async function DashboardPage() {
       <Card>
         <CardHeader>
           <CardTitle>Lectura CFO inicial</CardTitle>
-          <CardDescription>Interpretación simple de la salud mensual del hogar.</CardDescription>
+          <CardDescription>Interpretación simple del mes con gasto consolidado.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-3">
             <div className="rounded-2xl bg-slate-50 p-4">
               <p className="text-sm font-semibold">Free Cash Flow Familiar</p>
-              <p className="mt-1 text-sm text-muted-foreground">Por ahora equivale al flujo neto mensual. Luego restaremos pagos de deuda, inversiones y compromisos estratégicos.</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Este mes es {formatCurrency(consolidatedNetFlow)}. Si es positivo, el hogar generó excedente operativo; si es negativo, consumió liquidez.
+              </p>
             </div>
             <div className="rounded-2xl bg-slate-50 p-4">
-              <p className="text-sm font-semibold">Control de gasto</p>
-              <p className="mt-1 text-sm text-muted-foreground">La distribución por categoría permite detectar concentración y preparar presupuestos por rubro.</p>
+              <p className="text-sm font-semibold">Burn Rate familiar</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                El gasto consolidado del mes es {formatCurrency(consolidatedExpenses)}. Esta será la base para runway doméstico cuando registremos activos líquidos.
+              </p>
             </div>
             <div className="rounded-2xl bg-slate-50 p-4">
-              <p className="text-sm font-semibold">Siguiente capa</p>
-              <p className="mt-1 text-sm text-muted-foreground">Con más datos podremos activar burn rate, runway doméstico, presupuestos y alertas.</p>
+              <p className="text-sm font-semibold">Control presupuestal</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Los presupuestos comparan límites mensuales contra gasto real de cada capa, sin duplicar módulos operativos.
+              </p>
             </div>
           </div>
         </CardContent>

@@ -127,3 +127,20 @@ supabase/migrations/sprint_6.sql
 ```
 
 Consulta `docs/SPRINT_6.md` para pruebas detalladas.
+
+## Sprint 7
+
+Sprint 7 integra financieramente las operaciones del hogar:
+
+- Dashboard consolidado: gastos manuales + Mercado + Carro.
+- Flujo neto consolidado.
+- Tasa de ahorro real.
+- Nueva sección `/presupuestos`.
+- Presupuestos mensuales por capa: total, manual, mercado y carro.
+- Ejecución presupuestal con estado sano, alerta o excedido.
+
+Antes de probar, ejecutar:
+
+```txt
+supabase/migrations/sprint_7.sql
+```
