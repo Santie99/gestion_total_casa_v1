@@ -6,7 +6,9 @@ import { formatCurrency, formatPercent } from "@/lib/formatters";
 import { createClient } from "@/lib/supabase/server";
 import { getMonthlyTotals, groupEntriesByCategory } from "@/modules/finance/calculations";
 import { sumItemsByPurchase } from "@/modules/market/calculations";
+import { getUpcomingReminders, sumCarExpenses } from "@/modules/car/calculations";
 import type { MarketPeriod, MarketPurchase, MarketPurchaseItem } from "@/modules/market/types";
+import type { CarExpense, CarReminder } from "@/modules/car/types";
 import { SummaryCard } from "@/modules/finance/components/summary-card";
 import type { FinanceEntry } from "@/modules/finance/types";
 import { getCurrentFamily } from "@/modules/household/queries";
@@ -16,7 +18,7 @@ export default async function DashboardPage() {
   const supabase = await createClient();
   const month = getCurrentMonthRange();
 
-  const [{ data: incomeEntries }, { data: expenseEntries }, { data: marketPeriodsData }, { data: marketPurchasesData }] = await Promise.all([
+  const [{ data: incomeEntries }, { data: expenseEntries }, { data: marketPeriodsData }, { data: marketPurchasesData }, { data: carExpensesData }, { data: carRemindersData }] = await Promise.all([
     supabase
       .from("income_entries")
       .select("id, amount, occurred_on, description, category_id, categories(name)")
@@ -42,6 +44,18 @@ export default async function DashboardPage() {
       .select("id, family_id, market_period_id, invoice_id, purchased_on, vendor, purchase_type, notes, created_at")
       .eq("family_id", context.familyId)
       .order("purchased_on", { ascending: false }),
+    supabase
+      .from("car_expenses")
+      .select("id, family_id, vehicle_id, category, amount, occurred_on, monthly_period, vendor, odometer_km, notes, created_at")
+      .eq("family_id", context.familyId)
+      .gte("occurred_on", month.start)
+      .lte("occurred_on", month.end)
+      .order("occurred_on", { ascending: false }),
+    supabase
+      .from("car_reminders")
+      .select("id, family_id, vehicle_id, title, category, due_on, due_km, status, notes, created_at")
+      .eq("family_id", context.familyId)
+      .eq("status", "pending"),
   ]);
 
   const incomes = (incomeEntries ?? []) as unknown as FinanceEntry[];
@@ -72,11 +86,14 @@ export default async function DashboardPage() {
   const latestMarketItems = (latestMarketItemsData ?? []) as MarketPurchaseItem[];
   const marketTotalsByPurchase = sumItemsByPurchase(latestMarketItems);
   const latestMarketTotal = latestMarketPurchases.reduce((total, purchase) => total + (marketTotalsByPurchase[purchase.id] ?? 0), 0);
+  const carExpenses = (carExpensesData ?? []) as unknown as CarExpense[];
+  const carReminders = getUpcomingReminders((carRemindersData ?? []) as unknown as CarReminder[]);
+  const carMonthTotal = sumCarExpenses(carExpenses);
 
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-sm text-muted-foreground">Sprint 4 · Dashboard MVP conectado a Mercado</p>
+        <p className="text-sm text-muted-foreground">Sprint 6 · Dashboard MVP conectado a Mercado y Carro</p>
         <h2 className="text-3xl font-bold tracking-tight">Dashboard ejecutivo</h2>
         <p className="mt-2 text-muted-foreground">
           Resumen de {context.familyName} para {month.label}. Esta es la primera capa financiera real.
@@ -134,6 +151,30 @@ export default async function DashboardPage() {
           ) : (
             <p className="text-sm text-muted-foreground">Crea una quincena en Mercado para ver su resumen en el dashboard.</p>
           )}
+        </CardContent>
+      </Card>
+
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Carro actual</CardTitle>
+          <CardDescription>Primer resumen operativo del vehículo dentro del dashboard ejecutivo.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div className="rounded-2xl bg-slate-50 p-4">
+              <p className="text-xs text-muted-foreground">Gasto del mes</p>
+              <p className="mt-1 font-semibold">{formatCurrency(carMonthTotal)}</p>
+            </div>
+            <div className="rounded-2xl bg-slate-50 p-4">
+              <p className="text-xs text-muted-foreground">Registros</p>
+              <p className="mt-1 font-semibold">{carExpenses.length}</p>
+            </div>
+            <div className="rounded-2xl bg-slate-50 p-4">
+              <p className="text-xs text-muted-foreground">Pendientes</p>
+              <p className="mt-1 font-semibold">{carReminders.length}</p>
+            </div>
+          </div>
         </CardContent>
       </Card>
 

@@ -107,3 +107,23 @@ supabase/migrations/sprint_5.sql
 ```
 
 Consulta `docs/SPRINT_5.md` para pruebas detalladas.
+
+
+## Sprint 6
+
+Sprint 6 activa el módulo operativo de Carro y agrega base PWA:
+
+- Vehículos familiares.
+- Gastos del carro por categoría.
+- Vencimientos y mantenimientos pendientes.
+- Resumen mensual del carro.
+- Tarjeta de Carro actual en Dashboard.
+- Manifest PWA inicial.
+
+Antes de probar, ejecutar:
+
+```txt
+supabase/migrations/sprint_6.sql
+```
+
+Consulta `docs/SPRINT_6.md` para pruebas detalladas.
