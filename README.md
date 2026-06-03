@@ -144,3 +144,27 @@ Antes de probar, ejecutar:
 ```txt
 supabase/migrations/sprint_7.sql
 ```
+
+
+## Sprint 8
+
+Agrega gestión de deudas, activos y patrimonio familiar.
+
+Rutas nuevas:
+
+- `/deudas`
+- `/patrimonio`
+
+Migración requerida:
+
+```txt
+supabase/migrations/sprint_8.sql
+```
+
+Pruebas principales:
+
+- Crear deuda.
+- Crear activo.
+- Revisar patrimonio neto.
+- Revisar Debt-to-Income.
+- Revisar nuevas tarjetas en dashboard.

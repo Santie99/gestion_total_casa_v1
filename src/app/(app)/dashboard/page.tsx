@@ -21,6 +21,8 @@ import type { MarketPurchase, MarketPurchaseItem } from "@/modules/market/types"
 import { getUpcomingReminders, sumCarExpenses } from "@/modules/car/calculations";
 import type { CarExpense, CarReminder } from "@/modules/car/types";
 import { getCurrentFamily } from "@/modules/household/queries";
+import { getDebtToIncomeRatio, getWealthSummary } from "@/modules/wealth/calculations";
+import type { Asset, Debt } from "@/modules/wealth/types";
 
 function budgetStatusClass(status: "healthy" | "warning" | "exceeded") {
   if (status === "exceeded") return "text-red-700";
@@ -40,6 +42,8 @@ export default async function DashboardPage() {
     { data: carExpensesData },
     { data: carRemindersData },
     { data: budgetsData },
+    { data: debtsData },
+    { data: assetsData },
   ] = await Promise.all([
     supabase
       .from("income_entries")
@@ -81,6 +85,14 @@ export default async function DashboardPage() {
       .eq("family_id", context.familyId)
       .eq("budget_month", month.monthStart)
       .order("created_at", { ascending: false }),
+    supabase
+      .from("debts")
+      .select("id, family_id, name, debt_type, entity, current_balance, monthly_payment, interest_rate, due_day, responsible_member_id, status, notes, created_at")
+      .eq("family_id", context.familyId),
+    supabase
+      .from("assets")
+      .select("id, family_id, name, asset_type, estimated_value, valuation_date, owner_member_id, status, notes, created_at")
+      .eq("family_id", context.familyId),
   ]);
 
   const incomes = (incomeEntries ?? []) as unknown as FinanceEntry[];
@@ -110,6 +122,10 @@ export default async function DashboardPage() {
   const manualTotals = getMonthlyTotals(incomes, manualExpenses);
   const manualExpenseCategories = groupEntriesByCategory(manualExpenses).slice(0, 5);
   const budgets = (budgetsData ?? []) as unknown as MonthlyBudget[];
+  const debts = (debtsData ?? []) as unknown as Debt[];
+  const assets = (assetsData ?? []) as unknown as Asset[];
+  const wealthSummary = getWealthSummary(debts, assets);
+  const debtToIncomeRatio = getDebtToIncomeRatio(wealthSummary.monthlyDebtPayments, incomeTotal);
   const budgetExecutions = getBudgetExecutions(budgets, {
     total: consolidatedExpenses,
     manual: manualMonthTotal,
@@ -126,7 +142,7 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-sm text-muted-foreground">Sprint 7 · Dashboard financiero consolidado</p>
+        <p className="text-sm text-muted-foreground">Sprint 8 · Dashboard financiero consolidado + balance</p>
         <h2 className="text-3xl font-bold tracking-tight">Dashboard ejecutivo</h2>
         <p className="mt-2 text-muted-foreground">
           Resumen de {context.familyName} para {month.label}. Integra gastos manuales, Mercado y Carro sin duplicarlos en gastos generales.
@@ -152,6 +168,38 @@ export default async function DashboardPage() {
           <CardContent>
             <p className="text-sm text-muted-foreground">Flujo neto consolidado dividido entre ingresos.</p>
           </CardContent>
+        </Card>
+      </div>
+
+
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <Card>
+          <CardHeader>
+            <CardDescription>Activos registrados</CardDescription>
+            <CardTitle className="text-2xl text-emerald-700">{formatCurrency(wealthSummary.totalAssets)}</CardTitle>
+          </CardHeader>
+          <CardContent><p className="text-sm text-muted-foreground">Valor de activos activos registrados en Patrimonio.</p></CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardDescription>Deuda activa</CardDescription>
+            <CardTitle className="text-2xl text-red-700">{formatCurrency(wealthSummary.totalDebts)}</CardTitle>
+          </CardHeader>
+          <CardContent><p className="text-sm text-muted-foreground">Saldos pendientes registrados en Deudas.</p></CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardDescription>Patrimonio neto</CardDescription>
+            <CardTitle className={wealthSummary.netWorth >= 0 ? "text-2xl text-emerald-700" : "text-2xl text-red-700"}>{formatCurrency(wealthSummary.netWorth)}</CardTitle>
+          </CardHeader>
+          <CardContent><p className="text-sm text-muted-foreground">Activos menos deudas. Primera lectura de balance familiar.</p></CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardDescription>Debt-to-Income</CardDescription>
+            <CardTitle className={debtToIncomeRatio > 0.35 ? "text-2xl text-red-700" : debtToIncomeRatio > 0.25 ? "text-2xl text-amber-700" : "text-2xl text-emerald-700"}>{formatPercent(debtToIncomeRatio)}</CardTitle>
+          </CardHeader>
+          <CardContent><p className="text-sm text-muted-foreground">Cuotas mensuales de deuda / ingresos del mes.</p></CardContent>
         </Card>
       </div>
 
@@ -297,7 +345,7 @@ export default async function DashboardPage() {
           <CardDescription>Interpretación simple del mes con gasto consolidado.</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <div className="rounded-2xl bg-slate-50 p-4">
               <p className="text-sm font-semibold">Free Cash Flow Familiar</p>
               <p className="mt-1 text-sm text-muted-foreground">
@@ -314,6 +362,12 @@ export default async function DashboardPage() {
               <p className="text-sm font-semibold">Control presupuestal</p>
               <p className="mt-1 text-sm text-muted-foreground">
                 Los presupuestos comparan límites mensuales contra gasto real de cada capa, sin duplicar módulos operativos.
+              </p>
+            </div>
+            <div className="rounded-2xl bg-slate-50 p-4">
+              <p className="text-sm font-semibold">Balance familiar</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                El patrimonio neto registrado es {formatCurrency(wealthSummary.netWorth)}. La deuda activa representa {formatPercent(wealthSummary.debtToAssetRatio)} de los activos.
               </p>
             </div>
           </div>

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Home, Wallet, ShoppingCart, Car, Settings, ReceiptText, Target } from "lucide-react";
+import { Car, CreditCard, Home, Landmark, ReceiptText, Settings, ShoppingCart, Target, Wallet } from "lucide-react";
 import { LogoutButton } from "@/components/layout/logout-button";
 
 const navItems = [
@@ -7,9 +7,11 @@ const navItems = [
   { href: "/ingresos", label: "Ingresos", icon: Wallet },
   { href: "/gastos", label: "Gastos", icon: ReceiptText },
   { href: "/presupuestos", label: "Presup.", icon: Target },
+  { href: "/deudas", label: "Deudas", icon: CreditCard },
+  { href: "/patrimonio", label: "Patrimonio", icon: Landmark },
   { href: "/mercado", label: "Mercado", icon: ShoppingCart },
   { href: "/carro", label: "Carro", icon: Car },
-  { href: "/configuracion", label: "Configuración", icon: Settings },
+  { href: "/configuracion", label: "Config.", icon: Settings },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -35,13 +37,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <main className="pb-24 lg:ml-72 lg:pb-0">
         <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">{children}</div>
       </main>
-      <nav className="fixed bottom-0 left-0 right-0 grid grid-cols-7 border-t bg-white p-2 lg:hidden">
-        {navItems.map((item) => (
-          <Link key={item.href} href={item.href} className="flex flex-col items-center gap-1 rounded-xl p-2 text-[11px] text-slate-700 hover:bg-slate-100">
-            <item.icon className="h-4 w-4" />
-            <span className="truncate">{item.label}</span>
-          </Link>
-        ))}
+      <nav className="fixed bottom-0 left-0 right-0 overflow-x-auto border-t bg-white p-2 lg:hidden">
+        <div className="flex min-w-max gap-1">
+          {navItems.map((item) => (
+            <Link key={item.href} href={item.href} className="flex min-w-20 flex-col items-center gap-1 rounded-xl p-2 text-[11px] text-slate-700 hover:bg-slate-100">
+              <item.icon className="h-4 w-4" />
+              <span className="truncate">{item.label}</span>
+            </Link>
+          ))}
+        </div>
       </nav>
     </div>
   );
