@@ -197,3 +197,12 @@ Incluye:
 - Runway doméstico.
 - Savings Efficiency Ratio.
 - Liquidity Ratio.
+
+
+## Sprint 10 — Menús nutricionales base
+
+Agrega la ruta `/menus` con perfiles nutricionales por miembro, base nutricional por producto maestro, planificación de comidas familiares, productos dentro de menús, estimación básica de calorías/proteína y resumen diario.
+
+Migración requerida: `supabase/migrations/sprint_10.sql`.
+
+Nota: los menús todavía no descuentan stock automáticamente ni generan lista inteligente de compras.

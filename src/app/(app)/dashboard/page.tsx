@@ -49,6 +49,7 @@ export default async function DashboardPage() {
     { data: assetsData },
     { data: goalsData },
     { data: goalContributionsData },
+    { data: upcomingMealPlansData },
   ] = await Promise.all([
     supabase
       .from("income_entries")
@@ -106,6 +107,13 @@ export default async function DashboardPage() {
       .from("goal_contributions")
       .select("id, family_id, goal_id, contributed_on, amount, notes, created_by, created_at, financial_goals(name)")
       .eq("family_id", context.familyId),
+    supabase
+      .from("meal_plans")
+      .select("id, planned_on, meal_type, title")
+      .eq("family_id", context.familyId)
+      .gte("planned_on", month.start)
+      .lte("planned_on", month.end)
+      .order("planned_on", { ascending: true }),
   ]);
 
   const incomes = (incomeEntries ?? []) as unknown as FinanceEntry[];
@@ -146,6 +154,7 @@ export default async function DashboardPage() {
   const liquidityRatio = runwayMonths;
   const goals = (goalsData ?? []) as unknown as FinancialGoal[];
   const goalContributions = (goalContributionsData ?? []) as unknown as GoalContribution[];
+  const upcomingMealPlans = (upcomingMealPlansData ?? []) as { id: string; planned_on: string; meal_type: string; title: string }[];
   const goalRows = getGoalProgressRows(goals, goalContributions);
   const goalSummary = getGoalSummary(goalRows);
   const allBudgetExecutions = getBudgetExecutions(budgets, {
@@ -173,7 +182,7 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-sm text-muted-foreground">Sprint 9 · Dashboard CFO + objetivos estratégicos</p>
+        <p className="text-sm text-muted-foreground">Sprint 10 · Dashboard CFO + menús base</p>
         <h2 className="text-3xl font-bold tracking-tight">Dashboard ejecutivo</h2>
         <p className="mt-2 text-muted-foreground">
           Resumen de {context.familyName} para {month.label}. Integra gastos manuales, Mercado y Carro sin duplicarlos en gastos generales.
@@ -342,6 +351,11 @@ export default async function DashboardPage() {
                 <p className="text-xs text-muted-foreground">Carro</p>
                 <p className="mt-1 font-semibold">{formatCurrency(carMonthTotal)}</p>
                 <p className="text-xs text-muted-foreground">{carExpenses.length} gastos · {carReminders.length} pendientes.</p>
+              </div>
+              <div className="rounded-2xl bg-slate-50 p-4">
+                <p className="text-xs text-muted-foreground">Menús</p>
+                <p className="mt-1 font-semibold">{upcomingMealPlans.length} comidas</p>
+                <p className="text-xs text-muted-foreground">Planeadas dentro del mes actual. Aún no descuentan stock automáticamente.</p>
               </div>
               <div className="rounded-2xl bg-slate-50 p-4">
                 <p className="text-xs text-muted-foreground">Solo gastos manuales</p>
