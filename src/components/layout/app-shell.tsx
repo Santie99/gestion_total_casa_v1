@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Car, CreditCard, Home, Landmark, ReceiptText, Settings, ShoppingCart, Target, Wallet } from "lucide-react";
+import { Car, CreditCard, Flag, Home, Landmark, ReceiptText, Settings, ShoppingCart, Target, Wallet } from "lucide-react";
 import { LogoutButton } from "@/components/layout/logout-button";
 
 const navItems = [
@@ -7,6 +7,7 @@ const navItems = [
   { href: "/ingresos", label: "Ingresos", icon: Wallet },
   { href: "/gastos", label: "Gastos", icon: ReceiptText },
   { href: "/presupuestos", label: "Presup.", icon: Target },
+  { href: "/objetivos", label: "Objetivos", icon: Flag },
   { href: "/deudas", label: "Deudas", icon: CreditCard },
   { href: "/patrimonio", label: "Patrimonio", icon: Landmark },
   { href: "/mercado", label: "Mercado", icon: ShoppingCart },

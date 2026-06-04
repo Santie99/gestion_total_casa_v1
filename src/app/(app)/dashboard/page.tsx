@@ -23,6 +23,9 @@ import type { CarExpense, CarReminder } from "@/modules/car/types";
 import { getCurrentFamily } from "@/modules/household/queries";
 import { getDebtToIncomeRatio, getWealthSummary } from "@/modules/wealth/calculations";
 import type { Asset, Debt } from "@/modules/wealth/types";
+import { getFinancialHealthScore, getGoalProgressRows, getGoalSummary, getRunwayMonths } from "@/modules/planning/calculations";
+import { CfoMetricsCard } from "@/modules/planning/components/cfo-metrics-card";
+import type { FinancialGoal, GoalContribution } from "@/modules/planning/types";
 
 function budgetStatusClass(status: "healthy" | "warning" | "exceeded") {
   if (status === "exceeded") return "text-red-700";
@@ -44,6 +47,8 @@ export default async function DashboardPage() {
     { data: budgetsData },
     { data: debtsData },
     { data: assetsData },
+    { data: goalsData },
+    { data: goalContributionsData },
   ] = await Promise.all([
     supabase
       .from("income_entries")
@@ -93,6 +98,14 @@ export default async function DashboardPage() {
       .from("assets")
       .select("id, family_id, name, asset_type, estimated_value, valuation_date, owner_member_id, status, notes, created_at")
       .eq("family_id", context.familyId),
+    supabase
+      .from("financial_goals")
+      .select("id, family_id, name, category, target_amount, current_amount, target_date, responsible_member_id, priority, status, notes, created_at, family_members(full_name)")
+      .eq("family_id", context.familyId),
+    supabase
+      .from("goal_contributions")
+      .select("id, family_id, goal_id, contributed_on, amount, notes, created_by, created_at, financial_goals(name)")
+      .eq("family_id", context.familyId),
   ]);
 
   const incomes = (incomeEntries ?? []) as unknown as FinanceEntry[];
@@ -126,12 +139,30 @@ export default async function DashboardPage() {
   const assets = (assetsData ?? []) as unknown as Asset[];
   const wealthSummary = getWealthSummary(debts, assets);
   const debtToIncomeRatio = getDebtToIncomeRatio(wealthSummary.monthlyDebtPayments, incomeTotal);
-  const budgetExecutions = getBudgetExecutions(budgets, {
+  const liquidAssets = assets
+    .filter((asset) => asset.status === "active" && ["cash", "bank_account", "investment"].includes(asset.asset_type))
+    .reduce((total, asset) => total + Number(asset.estimated_value ?? 0), 0);
+  const runwayMonths = getRunwayMonths(liquidAssets, consolidatedExpenses);
+  const liquidityRatio = runwayMonths;
+  const goals = (goalsData ?? []) as unknown as FinancialGoal[];
+  const goalContributions = (goalContributionsData ?? []) as unknown as GoalContribution[];
+  const goalRows = getGoalProgressRows(goals, goalContributions);
+  const goalSummary = getGoalSummary(goalRows);
+  const allBudgetExecutions = getBudgetExecutions(budgets, {
     total: consolidatedExpenses,
     manual: manualMonthTotal,
     market: marketMonthTotal,
     car: carMonthTotal,
-  }).slice(0, 4);
+  });
+  const budgetExecutions = allBudgetExecutions.slice(0, 4);
+  const financialHealthScore = getFinancialHealthScore({
+    savingsRate: consolidatedSavingsRate,
+    debtToIncomeRatio,
+    budgetExceededCount: allBudgetExecutions.filter((execution) => execution.status === "exceeded").length,
+    budgetWarningCount: allBudgetExecutions.filter((execution) => execution.status === "warning").length,
+    netWorth: wealthSummary.netWorth,
+    runwayMonths,
+  });
   const latestMovements = [
     ...incomes.map((entry) => ({ ...entry, type: "income" as const })),
     ...manualExpenses.map((entry) => ({ ...entry, type: "expense" as const })),
@@ -142,7 +173,7 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-sm text-muted-foreground">Sprint 8 · Dashboard financiero consolidado + balance</p>
+        <p className="text-sm text-muted-foreground">Sprint 9 · Dashboard CFO + objetivos estratégicos</p>
         <h2 className="text-3xl font-bold tracking-tight">Dashboard ejecutivo</h2>
         <p className="mt-2 text-muted-foreground">
           Resumen de {context.familyName} para {month.label}. Integra gastos manuales, Mercado y Carro sin duplicarlos en gastos generales.
@@ -200,6 +231,46 @@ export default async function DashboardPage() {
             <CardTitle className={debtToIncomeRatio > 0.35 ? "text-2xl text-red-700" : debtToIncomeRatio > 0.25 ? "text-2xl text-amber-700" : "text-2xl text-emerald-700"}>{formatPercent(debtToIncomeRatio)}</CardTitle>
           </CardHeader>
           <CardContent><p className="text-sm text-muted-foreground">Cuotas mensuales de deuda / ingresos del mes.</p></CardContent>
+        </Card>
+      </div>
+
+      <CfoMetricsCard
+        freeCashFlow={consolidatedNetFlow}
+        burnRate={consolidatedExpenses}
+        runwayMonths={runwayMonths}
+        savingsEfficiency={consolidatedSavingsRate}
+        liquidityRatio={liquidityRatio}
+        healthScore={financialHealthScore}
+      />
+
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <Card>
+          <CardHeader>
+            <CardDescription>Objetivos activos</CardDescription>
+            <CardTitle className="text-2xl">{goalSummary.activeGoals}</CardTitle>
+          </CardHeader>
+          <CardContent><p className="text-sm text-muted-foreground">Metas financieras abiertas en /objetivos.</p></CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardDescription>Avance objetivos</CardDescription>
+            <CardTitle className="text-2xl">{formatPercent(goalSummary.averageProgressRate)}</CardTitle>
+          </CardHeader>
+          <CardContent><p className="text-sm text-muted-foreground">Progreso agregado de objetivos activos.</p></CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardDescription>Faltante total</CardDescription>
+            <CardTitle className="text-2xl">{formatCurrency(goalSummary.totalRemainingAmount)}</CardTitle>
+          </CardHeader>
+          <CardContent><p className="text-sm text-muted-foreground">Monto pendiente para completar metas activas.</p></CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardDescription>Próximo objetivo</CardDescription>
+            <CardTitle className="text-xl">{goalSummary.nextGoal?.name ?? "Sin fecha"}</CardTitle>
+          </CardHeader>
+          <CardContent><p className="text-sm text-muted-foreground">{goalSummary.nextGoal ? `Faltan ${formatCurrency(goalSummary.nextGoal.remainingAmount)}.` : "Crea metas con fecha objetivo."}</p></CardContent>
         </Card>
       </div>
 

@@ -168,3 +168,32 @@ Pruebas principales:
 - Revisar patrimonio neto.
 - Revisar Debt-to-Income.
 - Revisar nuevas tarjetas en dashboard.
+
+
+## Sprint 9
+
+Sprint 9 agrega objetivos financieros y métricas CFO ampliadas.
+
+Nueva ruta:
+
+```txt
+/objetivos
+```
+
+Nueva migración obligatoria:
+
+```txt
+supabase/migrations/sprint_9.sql
+```
+
+Incluye:
+
+- Objetivos financieros.
+- Aportes a objetivos.
+- Progreso y aporte mensual requerido.
+- Financial Health Score v1.
+- Free Cash Flow Familiar.
+- Burn Rate familiar.
+- Runway doméstico.
+- Savings Efficiency Ratio.
+- Liquidity Ratio.
