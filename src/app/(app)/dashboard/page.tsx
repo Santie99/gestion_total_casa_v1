@@ -50,6 +50,7 @@ export default async function DashboardPage() {
     { data: goalsData },
     { data: goalContributionsData },
     { data: upcomingMealPlansData },
+    { data: activeShoppingListsData },
   ] = await Promise.all([
     supabase
       .from("income_entries")
@@ -114,6 +115,12 @@ export default async function DashboardPage() {
       .gte("planned_on", month.start)
       .lte("planned_on", month.end)
       .order("planned_on", { ascending: true }),
+    supabase
+      .from("shopping_lists")
+      .select("id, name, period_start, period_end, status")
+      .eq("family_id", context.familyId)
+      .neq("status", "completed")
+      .order("created_at", { ascending: false }),
   ]);
 
   const incomes = (incomeEntries ?? []) as unknown as FinanceEntry[];
@@ -155,6 +162,7 @@ export default async function DashboardPage() {
   const goals = (goalsData ?? []) as unknown as FinancialGoal[];
   const goalContributions = (goalContributionsData ?? []) as unknown as GoalContribution[];
   const upcomingMealPlans = (upcomingMealPlansData ?? []) as { id: string; planned_on: string; meal_type: string; title: string }[];
+  const activeShoppingLists = (activeShoppingListsData ?? []) as { id: string; name: string; period_start: string; period_end: string; status: string }[];
   const goalRows = getGoalProgressRows(goals, goalContributions);
   const goalSummary = getGoalSummary(goalRows);
   const allBudgetExecutions = getBudgetExecutions(budgets, {
@@ -182,7 +190,7 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-sm text-muted-foreground">Sprint 10 · Dashboard CFO + menús base</p>
+        <p className="text-sm text-muted-foreground">Sprint 11 · Dashboard CFO + compras inteligentes</p>
         <h2 className="text-3xl font-bold tracking-tight">Dashboard ejecutivo</h2>
         <p className="mt-2 text-muted-foreground">
           Resumen de {context.familyName} para {month.label}. Integra gastos manuales, Mercado y Carro sin duplicarlos en gastos generales.
@@ -355,7 +363,12 @@ export default async function DashboardPage() {
               <div className="rounded-2xl bg-slate-50 p-4">
                 <p className="text-xs text-muted-foreground">Menús</p>
                 <p className="mt-1 font-semibold">{upcomingMealPlans.length} comidas</p>
-                <p className="text-xs text-muted-foreground">Planeadas dentro del mes actual. Aún no descuentan stock automáticamente.</p>
+                <p className="text-xs text-muted-foreground">Planeadas dentro del mes actual. Base para listas inteligentes.</p>
+              </div>
+              <div className="rounded-2xl bg-slate-50 p-4">
+                <p className="text-xs text-muted-foreground">Compras</p>
+                <p className="mt-1 font-semibold">{activeShoppingLists.length} listas activas</p>
+                <p className="text-xs text-muted-foreground">Listas generadas desde menús y stock actual.</p>
               </div>
               <div className="rounded-2xl bg-slate-50 p-4">
                 <p className="text-xs text-muted-foreground">Solo gastos manuales</p>

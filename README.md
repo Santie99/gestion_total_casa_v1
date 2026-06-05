@@ -206,3 +206,23 @@ Agrega la ruta `/menus` con perfiles nutricionales por miembro, base nutricional
 Migración requerida: `supabase/migrations/sprint_10.sql`.
 
 Nota: los menús todavía no descuentan stock automáticamente ni generan lista inteligente de compras.
+
+
+## Sprint 11 — Lista inteligente de compras
+
+Agrega la ruta `/compras` para generar listas de compra desde menús planeados y stock actual. Incluye productos sugeridos por menús, productos con stock bajo y productos manuales.
+
+Migración requerida:
+
+```txt
+supabase/migrations/sprint_11.sql
+```
+
+Flujo de prueba:
+
+1. Crear menús con productos en `/menus`.
+2. Tener stock registrado en `/mercado`.
+3. Ir a `/compras`.
+4. Generar lista inteligente para el rango deseado.
+5. Agregar productos manuales si hace falta.
+6. Marcar productos como comprados y cerrar la lista.
