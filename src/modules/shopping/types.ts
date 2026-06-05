@@ -10,6 +10,8 @@ export type ShoppingList = {
   period_end: string;
   status: ShoppingListStatus;
   notes: string | null;
+  converted_market_purchase_id: string | null;
+  converted_at: string | null;
   created_at: string;
 };
 
@@ -23,6 +25,10 @@ export type ShoppingListItem = {
   needed_quantity: number | null;
   current_stock_quantity: number | null;
   suggested_purchase_quantity: number;
+  actual_purchase_quantity: number | null;
+  actual_unit: string | null;
+  actual_total_price: number | null;
+  converted_to_market_item_id: string | null;
   unit: string;
   source: ShoppingItemSource;
   priority: ShoppingItemPriority;

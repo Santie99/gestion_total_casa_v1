@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { toDateInputValue } from "@/lib/dates";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentFamily } from "@/modules/household/queries";
-import type { MarketProduct, StockItem } from "@/modules/market/types";
+import type { ManualInvoice, MarketPeriod, MarketProduct, StockItem } from "@/modules/market/types";
 import type { MealPlan, MealPlanItem, MealPlanMember, MealPlanWithDetails } from "@/modules/menus/types";
 import { getShoppingListStats } from "@/modules/shopping/calculations";
 import { ShoppingListGeneratorForm } from "@/modules/shopping/components/shopping-list-generator-form";
@@ -31,6 +31,8 @@ export default async function ShoppingPage() {
     { data: stockItemsData },
     { data: productsData },
     { data: shoppingListsData },
+    { data: marketPeriodsData },
+    { data: invoicesData },
   ] = await Promise.all([
     supabase
       .from("meal_plans")
@@ -53,10 +55,21 @@ export default async function ShoppingPage() {
       .order("name", { ascending: true }),
     supabase
       .from("shopping_lists")
-      .select("id, family_id, name, period_start, period_end, status, notes, created_at")
+      .select("id, family_id, name, period_start, period_end, status, notes, converted_market_purchase_id, converted_at, created_at")
       .eq("family_id", context.familyId)
       .order("created_at", { ascending: false })
       .limit(10),
+    supabase
+      .from("market_periods")
+      .select("id, family_id, name, starts_on, ends_on, status, notes, created_at")
+      .eq("family_id", context.familyId)
+      .order("starts_on", { ascending: false }),
+    supabase
+      .from("manual_invoices")
+      .select("id, family_id, invoice_code, invoice_date, vendor, notes, created_at")
+      .eq("family_id", context.familyId)
+      .order("created_at", { ascending: false })
+      .limit(30),
   ]);
 
   const mealPlans = (mealPlansData ?? []) as unknown as MealPlan[];
@@ -80,7 +93,7 @@ export default async function ShoppingPage() {
     (shoppingListsData ?? []).length
       ? supabase
           .from("shopping_list_items")
-          .select("id, family_id, shopping_list_id, product_id, product_name, category_name, needed_quantity, current_stock_quantity, suggested_purchase_quantity, unit, source, priority, is_purchased, notes, created_at")
+          .select("id, family_id, shopping_list_id, product_id, product_name, category_name, needed_quantity, current_stock_quantity, suggested_purchase_quantity, actual_purchase_quantity, actual_unit, actual_total_price, converted_to_market_item_id, unit, source, priority, is_purchased, notes, created_at")
           .eq("family_id", context.familyId)
           .in("shopping_list_id", (shoppingListsData ?? []).map((list) => list.id))
           .order("created_at", { ascending: true })
@@ -91,6 +104,8 @@ export default async function ShoppingPage() {
   const mealPlanItems = (mealPlanItemsData ?? []) as unknown as MealPlanItem[];
   const stockItems = (stockItemsData ?? []) as StockItem[];
   const products = (productsData ?? []) as MarketProduct[];
+  const marketPeriods = (marketPeriodsData ?? []) as MarketPeriod[];
+  const invoices = (invoicesData ?? []) as ManualInvoice[];
   const shoppingLists = (shoppingListsData ?? []) as ShoppingList[];
   const shoppingItems = (shoppingItemsData ?? []) as ShoppingListItem[];
 
@@ -119,10 +134,10 @@ export default async function ShoppingPage() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-sm text-muted-foreground">Sprint 11 · Lista inteligente de compras</p>
+        <p className="text-sm text-muted-foreground">Sprint 12 · Lista inteligente conectada a Mercado</p>
         <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Compras</h2>
         <p className="mt-2 text-sm text-muted-foreground sm:text-base">
-          Genera listas de compra desde menús planeados y stock actual. Esta versión sugiere cantidades; todavía no convierte unidades entre sí.
+          Genera listas desde menús y stock. Convierte productos comprados en una compra real de Mercado para actualizar inventario automáticamente.
         </p>
       </div>
 
@@ -159,10 +174,10 @@ export default async function ShoppingPage() {
         <Card>
           <CardHeader>
             <CardTitle>Listas de compras</CardTitle>
-            <CardDescription>Marca productos comprados y cierra listas cuando termines el mercado.</CardDescription>
+            <CardDescription>Marca productos comprados, registra cantidades/precios reales y conviértelos en una compra de Mercado.</CardDescription>
           </CardHeader>
           <CardContent>
-            <ShoppingListView lists={listsWithItems} />
+            <ShoppingListView familyId={context.familyId} lists={listsWithItems} marketPeriods={marketPeriods} invoices={invoices} />
           </CardContent>
         </Card>
       </div>

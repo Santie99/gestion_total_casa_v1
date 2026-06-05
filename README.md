@@ -226,3 +226,22 @@ Flujo de prueba:
 4. Generar lista inteligente para el rango deseado.
 5. Agregar productos manuales si hace falta.
 6. Marcar productos como comprados y cerrar la lista.
+
+
+## Sprint 12
+
+Sprint 12 conecta la lista inteligente de compras con Mercado y Stock.
+
+Nuevo flujo:
+
+1. Generar lista en `/compras`.
+2. Marcar productos comprados.
+3. Registrar cantidades y precios reales.
+4. Convertir la lista en compra real de Mercado.
+5. Actualizar stock automáticamente.
+
+Migración obligatoria:
+
+```txt
+supabase/migrations/sprint_12.sql
+```

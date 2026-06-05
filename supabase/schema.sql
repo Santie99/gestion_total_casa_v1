@@ -620,6 +620,8 @@ create table if not exists public.shopping_lists (
   period_end date not null,
   status text not null default 'draft' check (status in ('draft', 'active', 'completed')),
   notes text,
+  converted_market_purchase_id uuid references public.market_purchases(id) on delete set null,
+  converted_at timestamptz,
   created_by uuid references auth.users(id) on delete set null,
   created_at timestamptz not null default now(),
   check (period_end >= period_start)
@@ -635,6 +637,10 @@ create table if not exists public.shopping_list_items (
   needed_quantity numeric(14,3) check (needed_quantity is null or needed_quantity >= 0),
   current_stock_quantity numeric(14,3) check (current_stock_quantity is null or current_stock_quantity >= 0),
   suggested_purchase_quantity numeric(14,3) not null check (suggested_purchase_quantity > 0),
+  actual_purchase_quantity numeric(14,3) check (actual_purchase_quantity is null or actual_purchase_quantity > 0),
+  actual_unit text,
+  actual_total_price numeric(14,2) check (actual_total_price is null or actual_total_price >= 0),
+  converted_to_market_item_id uuid references public.market_purchase_items(id) on delete set null,
   unit text not null,
   source text not null default 'manual' check (source in ('menu', 'low_stock', 'manual')),
   priority text not null default 'normal' check (priority in ('low', 'normal', 'high')),
@@ -644,8 +650,10 @@ create table if not exists public.shopping_list_items (
 );
 
 create index if not exists shopping_lists_family_period_idx on public.shopping_lists (family_id, period_start desc, period_end desc);
+create index if not exists shopping_lists_family_converted_idx on public.shopping_lists (family_id, converted_market_purchase_id);
 create index if not exists shopping_list_items_family_list_idx on public.shopping_list_items (family_id, shopping_list_id);
 create index if not exists shopping_list_items_family_product_idx on public.shopping_list_items (family_id, product_id, unit);
+create index if not exists shopping_list_items_family_converted_idx on public.shopping_list_items (family_id, converted_to_market_item_id);
 
 alter table public.shopping_lists enable row level security;
 alter table public.shopping_list_items enable row level security;
