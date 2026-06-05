@@ -134,10 +134,10 @@ export default async function ShoppingPage() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-sm text-muted-foreground">Sprint 12 · Lista inteligente conectada a Mercado</p>
+        <p className="text-sm text-muted-foreground">Sprint 12.1 · Lista inteligente y lista manual</p>
         <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Compras</h2>
         <p className="mt-2 text-sm text-muted-foreground sm:text-base">
-          Genera listas desde menús y stock. Convierte productos comprados en una compra real de Mercado para actualizar inventario automáticamente.
+          Genera listas desde menús y stock, o crea una lista manual desde cero. Convierte productos comprados en una compra real de Mercado para actualizar inventario automáticamente.
         </p>
       </div>
 
@@ -152,8 +152,8 @@ export default async function ShoppingPage() {
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Generar lista inteligente</CardTitle>
-              <CardDescription>Calcula faltantes usando menús del rango seleccionado y stock actual.</CardDescription>
+              <CardTitle>Crear lista de compras</CardTitle>
+              <CardDescription>Genera sugerencias automáticas o crea una lista manual vacía para cargar productos desde cero.</CardDescription>
             </CardHeader>
             <CardContent>
               <ShoppingListGeneratorForm familyId={context.familyId} plans={plansWithDetails} stockItems={stockItems} />

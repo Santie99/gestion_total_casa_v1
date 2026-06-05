@@ -245,3 +245,13 @@ Migración obligatoria:
 ```txt
 supabase/migrations/sprint_12.sql
 ```
+
+
+## Sprint 12.1
+
+Sprint 12.1 permite crear listas manuales desde cero cuando no hay menús, stock bajo o productos agotados que generen sugerencias automáticas.
+
+- Si hay sugerencias, el formulario crea una lista inteligente.
+- Si no hay sugerencias, crea una lista manual vacía.
+- No requiere migración SQL.
+- Mantiene el flujo: lista manual → productos manuales → convertir a Mercado → actualizar stock.

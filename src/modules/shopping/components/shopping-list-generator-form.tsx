@@ -34,6 +34,7 @@ export function ShoppingListGeneratorForm({
   const [periodEnd, setPeriodEnd] = useState(defaultEnd);
   const [includeLowStock, setIncludeLowStock] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const previewSuggestions = useMemo(() => {
@@ -42,10 +43,13 @@ export function ShoppingListGeneratorForm({
     return mergeShoppingSuggestions([...menuSuggestions, ...lowStockSuggestions]);
   }, [includeLowStock, periodEnd, periodStart, plans, stockItems]);
 
+  const hasSuggestions = previewSuggestions.length > 0;
+
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setLoading(true);
     setError(null);
+    setSuccessMessage(null);
 
     const form = event.currentTarget;
     const formData = new FormData(form);
@@ -60,12 +64,6 @@ export function ShoppingListGeneratorForm({
 
     if (periodEnd < periodStart) {
       setError("La fecha final no puede ser anterior a la inicial.");
-      setLoading(false);
-      return;
-    }
-
-    if (!previewSuggestions.length) {
-      setError("No hay compras sugeridas para este rango. Revisa menús, stock o agrega compras manuales después de crear una lista.");
       setLoading(false);
       return;
     }
@@ -87,23 +85,29 @@ export function ShoppingListGeneratorForm({
 
       if (listError) throw listError;
 
-      const rows = previewSuggestions.map((suggestion) => ({
-        family_id: familyId,
-        shopping_list_id: list.id,
-        product_id: suggestion.productId,
-        product_name: suggestion.productName,
-        category_name: suggestion.categoryName,
-        needed_quantity: suggestion.neededQuantity,
-        current_stock_quantity: suggestion.currentStockQuantity,
-        suggested_purchase_quantity: suggestion.suggestedPurchaseQuantity,
-        unit: suggestion.unit,
-        source: suggestion.source,
-        priority: suggestion.priority,
-        notes: suggestion.notes,
-      }));
+      if (previewSuggestions.length) {
+        const rows = previewSuggestions.map((suggestion) => ({
+          family_id: familyId,
+          shopping_list_id: list.id,
+          product_id: suggestion.productId,
+          product_name: suggestion.productName,
+          category_name: suggestion.categoryName,
+          needed_quantity: suggestion.neededQuantity,
+          current_stock_quantity: suggestion.currentStockQuantity,
+          suggested_purchase_quantity: suggestion.suggestedPurchaseQuantity,
+          unit: suggestion.unit,
+          source: suggestion.source,
+          priority: suggestion.priority,
+          notes: suggestion.notes,
+        }));
 
-      const { error: itemsError } = await supabase.from("shopping_list_items").insert(rows);
-      if (itemsError) throw itemsError;
+        const { error: itemsError } = await supabase.from("shopping_list_items").insert(rows);
+        if (itemsError) throw itemsError;
+
+        setSuccessMessage("Lista inteligente creada. Revisa los productos sugeridos y ajusta lo necesario.");
+      } else {
+        setSuccessMessage("Lista manual vacía creada. Ahora puedes agregar productos manualmente en el formulario inferior.");
+      }
 
       form.reset();
       setPeriodStart(today);
@@ -111,7 +115,7 @@ export function ShoppingListGeneratorForm({
       setIncludeLowStock(true);
       router.refresh();
     } catch (err) {
-      setError(getFriendlyErrorMessage(err, "No se pudo generar la lista de compras."));
+      setError(getFriendlyErrorMessage(err, "No se pudo crear la lista de compras."));
     } finally {
       setLoading(false);
     }
@@ -148,9 +152,11 @@ export function ShoppingListGeneratorForm({
       <div className="rounded-2xl bg-slate-50 p-4 text-sm">
         <p className="font-semibold">Vista previa</p>
         <p className="mt-1 text-muted-foreground">
-          {previewSuggestions.length} producto(s) sugeridos. La lista se calcula con menús del rango seleccionado y stock actual.
+          {hasSuggestions
+            ? `${previewSuggestions.length} producto(s) sugeridos. La lista se calcula con menús del rango seleccionado y stock actual.`
+            : "No hay sugerencias automáticas porque aún no tienes menús, stock bajo o productos agotados para este rango."}
         </p>
-        {previewSuggestions.length ? (
+        {hasSuggestions ? (
           <div className="mt-3 max-h-48 space-y-2 overflow-y-auto pr-1">
             {previewSuggestions.slice(0, 8).map((suggestion) => (
               <div key={`${suggestion.productName}-${suggestion.unit}-${suggestion.source}`} className="flex items-start justify-between gap-3 rounded-xl bg-white p-3">
@@ -162,7 +168,11 @@ export function ShoppingListGeneratorForm({
               </div>
             ))}
           </div>
-        ) : null}
+        ) : (
+          <div className="mt-3 rounded-xl border border-dashed border-slate-300 bg-white p-3 text-xs text-muted-foreground">
+            Puedes crear una lista manual vacía y luego agregar productos desde el formulario <strong>Agregar producto manual</strong>.
+          </div>
+        )}
       </div>
 
       <div className="space-y-2">
@@ -171,7 +181,10 @@ export function ShoppingListGeneratorForm({
       </div>
 
       {error ? <p className="rounded-xl bg-red-50 p-3 text-sm text-red-700">{error}</p> : null}
-      <Button className="w-full" disabled={loading}>{loading ? "Generando..." : "Generar lista inteligente"}</Button>
+      {successMessage ? <p className="rounded-xl bg-emerald-50 p-3 text-sm text-emerald-700">{successMessage}</p> : null}
+      <Button className="w-full" disabled={loading}>
+        {loading ? "Creando..." : hasSuggestions ? "Generar lista inteligente" : "Crear lista manual vacía"}
+      </Button>
     </form>
   );
 }
