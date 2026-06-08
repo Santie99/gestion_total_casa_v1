@@ -272,3 +272,22 @@ Ejecutar en Supabase:
 ```sql
 supabase/migrations/sprint_13.sql
 ```
+
+
+## Sprint 14 — PWA + experiencia móvil
+
+Este sprint mejora la experiencia tipo app:
+
+- Manifest PWA completo con íconos y shortcuts.
+- Service worker básico para shell/cache.
+- Instalación desde dashboard.
+- Banner offline.
+- Navegación móvil inferior con estado activo.
+- Header móvil sticky.
+- Acciones rápidas en dashboard.
+- Sidebar desktop agrupado por áreas.
+- Ajustes globales para safe-area, tap y formularios móviles.
+
+No requiere migración SQL nueva.
+
+Para probar PWA real, desplegar en Vercel y abrir desde el celular. En iPhone se instala desde Safari → Compartir → Agregar a pantalla de inicio.
