@@ -30,6 +30,8 @@ export function ShoppingManualItemForm({ familyId, lists, products }: { familyId
     const categoryName = String(formData.get("category_name") ?? "").trim();
     const quantity = Number(formData.get("suggested_purchase_quantity"));
     const unit = String(formData.get("unit") ?? "").trim();
+    const preferredVendor = String(formData.get("preferred_vendor") ?? "").trim();
+    const priority = String(formData.get("priority") ?? "normal");
     const notes = String(formData.get("notes") ?? "").trim();
 
     if (!shoppingListId) {
@@ -69,7 +71,8 @@ export function ShoppingManualItemForm({ familyId, lists, products }: { familyId
         suggested_purchase_quantity: quantity,
         unit,
         source: "manual",
-        priority: "normal",
+        priority: ["low", "normal", "high"].includes(priority) ? priority : "normal",
+        preferred_vendor: preferredVendor || null,
         notes: notes || null,
       });
 
@@ -124,6 +127,21 @@ export function ShoppingManualItemForm({ familyId, lists, products }: { familyId
         <div className="space-y-2">
           <label className="text-sm font-medium" htmlFor="manual-unit">Unidad</label>
           <Input id="manual-unit" name="unit" defaultValue={selectedProduct?.default_unit ?? ""} key={`unit-${selectedProductId}`} required />
+        </div>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="space-y-2">
+          <label className="text-sm font-medium" htmlFor="manual-preferred-vendor">Lugar sugerido</label>
+          <Input id="manual-preferred-vendor" name="preferred_vendor" placeholder="Ej.: D1, Plaza, Éxito" />
+        </div>
+        <div className="space-y-2">
+          <label className="text-sm font-medium" htmlFor="manual-priority">Prioridad</label>
+          <Select id="manual-priority" name="priority" defaultValue="normal">
+            <option value="low">Baja</option>
+            <option value="normal">Normal</option>
+            <option value="high">Alta</option>
+          </Select>
         </div>
       </div>
 

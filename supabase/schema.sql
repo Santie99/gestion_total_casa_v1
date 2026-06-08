@@ -669,3 +669,10 @@ create policy "Family members can manage shopping list items" on public.shopping
 for all to authenticated
 using (family_id in (select public.user_family_ids()))
 with check (family_id in (select public.user_family_ids()));
+
+-- Sprint 13 — Compras/Mercado v2 para uso real
+alter table public.shopping_list_items
+add column if not exists preferred_vendor text;
+
+create index if not exists shopping_list_items_family_vendor_idx
+on public.shopping_list_items (family_id, preferred_vendor);

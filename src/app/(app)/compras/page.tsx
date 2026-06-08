@@ -93,7 +93,7 @@ export default async function ShoppingPage() {
     (shoppingListsData ?? []).length
       ? supabase
           .from("shopping_list_items")
-          .select("id, family_id, shopping_list_id, product_id, product_name, category_name, needed_quantity, current_stock_quantity, suggested_purchase_quantity, actual_purchase_quantity, actual_unit, actual_total_price, converted_to_market_item_id, unit, source, priority, is_purchased, notes, created_at")
+          .select("id, family_id, shopping_list_id, product_id, product_name, category_name, needed_quantity, current_stock_quantity, suggested_purchase_quantity, actual_purchase_quantity, actual_unit, actual_total_price, converted_to_market_item_id, preferred_vendor, unit, source, priority, is_purchased, notes, created_at")
           .eq("family_id", context.familyId)
           .in("shopping_list_id", (shoppingListsData ?? []).map((list) => list.id))
           .order("created_at", { ascending: true })
@@ -134,10 +134,10 @@ export default async function ShoppingPage() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-sm text-muted-foreground">Sprint 12.1 · Lista inteligente y lista manual</p>
+        <p className="text-sm text-muted-foreground">Sprint 13 · Compras por lugar y conversión parcial</p>
         <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Compras</h2>
         <p className="mt-2 text-sm text-muted-foreground sm:text-base">
-          Genera listas desde menús y stock, o crea una lista manual desde cero. Convierte productos comprados en una compra real de Mercado para actualizar inventario automáticamente.
+          Crea listas generales, agrupa productos por lugar de compra y convierte solo los productos comprados de cada proveedor en compras reales de Mercado con stock automático.
         </p>
       </div>
 
@@ -163,7 +163,7 @@ export default async function ShoppingPage() {
           <Card>
             <CardHeader>
               <CardTitle>Agregar producto manual</CardTitle>
-              <CardDescription>Úsalo para compras prioritarias esporádicas o productos no cubiertos por menús.</CardDescription>
+              <CardDescription>Úsalo para compras prioritarias esporádicas o productos no cubiertos por menús. Puedes asignar lugar sugerido por producto.</CardDescription>
             </CardHeader>
             <CardContent>
               <ShoppingManualItemForm familyId={context.familyId} lists={shoppingLists.filter((list) => list.status !== "completed")} products={products} />
@@ -174,10 +174,10 @@ export default async function ShoppingPage() {
         <Card>
           <CardHeader>
             <CardTitle>Listas de compras</CardTitle>
-            <CardDescription>Marca productos comprados, registra cantidades/precios reales y conviértelos en una compra de Mercado.</CardDescription>
+            <CardDescription>Agrupa por lugar, marca productos comprados, registra cantidades/precios reales y convierte por proveedor o grupo.</CardDescription>
           </CardHeader>
           <CardContent>
-            <ShoppingListView familyId={context.familyId} lists={listsWithItems} marketPeriods={marketPeriods} invoices={invoices} />
+            <ShoppingListView familyId={context.familyId} lists={listsWithItems} marketPeriods={marketPeriods} invoices={invoices} products={products} />
           </CardContent>
         </Card>
       </div>

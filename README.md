@@ -255,3 +255,20 @@ Sprint 12.1 permite crear listas manuales desde cero cuando no hay menús, stock
 - Si no hay sugerencias, crea una lista manual vacía.
 - No requiere migración SQL.
 - Mantiene el flujo: lista manual → productos manuales → convertir a Mercado → actualizar stock.
+
+## Sprint 13 — Compras/Mercado v2 para uso real
+
+Este sprint mejora el flujo de compras reales:
+
+- Lugar/proveedor sugerido por producto de lista.
+- Agrupación visual de la lista por lugar.
+- Conversión parcial por grupo/lugar a Mercado.
+- Actualización automática de stock para cada grupo convertido.
+- Asociación de ítems manuales a productos maestros.
+- Creación rápida de producto maestro desde un ítem de lista.
+
+Ejecutar en Supabase:
+
+```sql
+supabase/migrations/sprint_13.sql
+```

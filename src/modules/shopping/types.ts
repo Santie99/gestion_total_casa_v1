@@ -28,6 +28,7 @@ export type ShoppingListItem = {
   actual_purchase_quantity: number | null;
   actual_unit: string | null;
   actual_total_price: number | null;
+  preferred_vendor: string | null;
   converted_to_market_item_id: string | null;
   unit: string;
   source: ShoppingItemSource;
