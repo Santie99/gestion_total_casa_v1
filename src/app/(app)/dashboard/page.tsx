@@ -25,8 +25,6 @@ import { getDebtToIncomeRatio, getWealthSummary } from "@/modules/wealth/calcula
 import type { Asset, Debt } from "@/modules/wealth/types";
 import { getFinancialHealthScore, getGoalProgressRows, getGoalSummary, getRunwayMonths } from "@/modules/planning/calculations";
 import { CfoMetricsCard } from "@/modules/planning/components/cfo-metrics-card";
-import { QuickActions } from "@/components/dashboard/quick-actions";
-import { InstallAppCard } from "@/components/pwa/install-app-card";
 import type { FinancialGoal, GoalContribution } from "@/modules/planning/types";
 
 function budgetStatusClass(status: "healthy" | "warning" | "exceeded") {
@@ -197,11 +195,6 @@ export default async function DashboardPage() {
         <p className="mt-2 text-muted-foreground">
           Resumen de {context.familyName} para {month.label}. Integra gastos manuales, Mercado y Carro sin duplicarlos en gastos generales.
         </p>
-      </div>
-
-      <div className="grid gap-4 xl:grid-cols-[1.45fr_1fr]">
-        <QuickActions />
-        <InstallAppCard />
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">

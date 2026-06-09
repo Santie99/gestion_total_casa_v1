@@ -374,6 +374,7 @@ export function ShoppingListView({
   return (
     <div className="space-y-4">
       {error ? <p className="rounded-xl bg-red-50 p-3 text-sm text-red-700">{error}</p> : null}
+      <div className="-mx-4 flex snap-x gap-4 overflow-x-auto px-4 pb-3 sm:mx-0 sm:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       {lists.map((list) => {
         const pending = list.items.filter((item) => !item.is_purchased).length;
         const purchased = list.items.filter((item) => item.is_purchased).length;
@@ -384,7 +385,7 @@ export function ShoppingListView({
           return acc;
         }, {});
         return (
-          <div key={list.id} className="rounded-2xl border p-4">
+          <div key={list.id} className="min-w-[88vw] max-w-[88vw] snap-start rounded-3xl border bg-white p-4 shadow-sm sm:min-w-[560px] sm:max-w-[560px] xl:min-w-[780px] xl:max-w-[780px]">
             <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
               <div>
                 <div className="flex flex-wrap items-center gap-2">
@@ -404,12 +405,12 @@ export function ShoppingListView({
               ) : null}
             </div>
 
-            <div className="mt-5 space-y-5">
+            <div className="mt-5 flex snap-x gap-4 overflow-x-auto pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {Object.entries(groups).map(([groupKey, groupItems]) => {
                 const convertibleItems = purchasedItemsForGroup(groupItems);
                 const formKey = `${list.id}_${groupKey.replace(/[^a-zA-Z0-9]/g, "_")}`;
                 return (
-                  <section key={groupKey} className="rounded-2xl border bg-slate-50 p-4">
+                  <section key={groupKey} className="min-w-[80vw] snap-start rounded-2xl border bg-slate-50 p-4 sm:min-w-[480px] xl:min-w-[620px]">
                     <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                       <div>
                         <h4 className="font-semibold">{groupKey}</h4>
@@ -567,6 +568,7 @@ export function ShoppingListView({
           </div>
         );
       })}
+      </div>
     </div>
   );
 }

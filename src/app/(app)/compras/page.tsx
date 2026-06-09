@@ -133,53 +133,57 @@ export default async function ShoppingPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <p className="text-sm text-muted-foreground">Sprint 13 · Compras por lugar y conversión parcial</p>
-        <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Compras</h2>
-        <p className="mt-2 text-sm text-muted-foreground sm:text-base">
+      <div className="rounded-[2rem] border bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 p-5 text-white shadow-sm sm:p-7">
+        <p className="text-xs font-semibold uppercase tracking-[0.28em] text-white/50">Sprint 14.1 · Modo compra móvil</p>
+        <h2 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">Compras</h2>
+        <p className="mt-3 max-w-3xl text-sm leading-6 text-white/70 sm:text-base">
           Crea listas generales, agrupa productos por lugar de compra y convierte solo los productos comprados de cada proveedor en compras reales de Mercado con stock automático.
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <ShoppingSummaryCard title="Listas activas" value={String(stats.activeLists)} description="Listas en borrador o activas." />
-        <ShoppingSummaryCard title="Pendientes" value={String(stats.pendingItems)} description="Productos aún no marcados como comprados." />
-        <ShoppingSummaryCard title="Prioridad alta" value={String(stats.highPriorityItems)} description="Faltantes críticos por menús o stock agotado." />
-        <ShoppingSummaryCard title="Stock bajo" value={String(lowStockCount)} description="Productos del inventario en o debajo del mínimo." />
+      <div className="-mx-4 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
+        <div className="flex min-w-full gap-3 sm:grid sm:grid-cols-2 xl:grid-cols-4">
+          <div className="min-w-[230px] flex-1 sm:min-w-0"><ShoppingSummaryCard title="Listas activas" value={String(stats.activeLists)} description="Listas en borrador o activas." /></div>
+          <div className="min-w-[230px] flex-1 sm:min-w-0"><ShoppingSummaryCard title="Pendientes" value={String(stats.pendingItems)} description="Productos aún no marcados como comprados." /></div>
+          <div className="min-w-[230px] flex-1 sm:min-w-0"><ShoppingSummaryCard title="Prioridad alta" value={String(stats.highPriorityItems)} description="Faltantes críticos por menús o stock agotado." /></div>
+          <div className="min-w-[230px] flex-1 sm:min-w-0"><ShoppingSummaryCard title="Stock bajo" value={String(lowStockCount)} description="Productos del inventario en o debajo del mínimo." /></div>
+        </div>
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[380px_1fr]">
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Crear lista de compras</CardTitle>
-              <CardDescription>Genera sugerencias automáticas o crea una lista manual vacía para cargar productos desde cero.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ShoppingListGeneratorForm familyId={context.familyId} plans={plansWithDetails} stockItems={stockItems} />
-            </CardContent>
-          </Card>
+      <div className="-mx-4 overflow-x-auto px-4 pb-3 sm:mx-0 sm:px-0 xl:overflow-visible">
+        <div className="flex gap-4 xl:grid xl:grid-cols-[380px_1fr]">
+          <div className="w-[86vw] shrink-0 space-y-4 sm:w-[420px] xl:w-auto xl:shrink">
+            <Card className="rounded-[1.75rem]">
+              <CardHeader>
+                <CardTitle>Crear lista</CardTitle>
+                <CardDescription>Genera sugerencias automáticas o crea una lista manual vacía para cargar productos desde cero.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ShoppingListGeneratorForm familyId={context.familyId} plans={plansWithDetails} stockItems={stockItems} />
+              </CardContent>
+            </Card>
 
-          <Card>
+            <Card className="rounded-[1.75rem]">
+              <CardHeader>
+                <CardTitle>Agregar producto</CardTitle>
+                <CardDescription>Agrega compras prioritarias, esporádicas o productos no cubiertos por menús. Puedes asignar lugar sugerido por producto.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ShoppingManualItemForm familyId={context.familyId} lists={shoppingLists.filter((list) => list.status !== "completed")} products={products} />
+              </CardContent>
+            </Card>
+          </div>
+
+          <Card className="w-[92vw] shrink-0 rounded-[1.75rem] sm:w-[620px] xl:w-auto xl:shrink">
             <CardHeader>
-              <CardTitle>Agregar producto manual</CardTitle>
-              <CardDescription>Úsalo para compras prioritarias esporádicas o productos no cubiertos por menús. Puedes asignar lugar sugerido por producto.</CardDescription>
+              <CardTitle>Listas de compras</CardTitle>
+              <CardDescription>Agrupa por lugar, marca productos comprados, registra cantidades/precios reales y convierte por proveedor o grupo.</CardDescription>
             </CardHeader>
             <CardContent>
-              <ShoppingManualItemForm familyId={context.familyId} lists={shoppingLists.filter((list) => list.status !== "completed")} products={products} />
+              <ShoppingListView familyId={context.familyId} lists={listsWithItems} marketPeriods={marketPeriods} invoices={invoices} products={products} />
             </CardContent>
           </Card>
         </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Listas de compras</CardTitle>
-            <CardDescription>Agrupa por lugar, marca productos comprados, registra cantidades/precios reales y convierte por proveedor o grupo.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ShoppingListView familyId={context.familyId} lists={listsWithItems} marketPeriods={marketPeriods} invoices={invoices} products={products} />
-          </CardContent>
-        </Card>
       </div>
     </div>
   );

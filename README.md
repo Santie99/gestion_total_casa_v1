@@ -291,3 +291,7 @@ Este sprint mejora la experiencia tipo app:
 No requiere migración SQL nueva.
 
 Para probar PWA real, desplegar en Vercel y abrir desde el celular. En iPhone se instala desde Safari → Compartir → Agregar a pantalla de inicio.
+
+## Sprint 14.1
+
+Sprint 14.1 corrige la experiencia móvil/PWA: elimina el menú hamburguesa inservible, remueve acciones rápidas y tarjeta de app instalada del dashboard, agrega Presupuestos al menú inferior y mejora `/compras` con carruseles horizontales para listas y grupos por proveedor. No requiere SQL.

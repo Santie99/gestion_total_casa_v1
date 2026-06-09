@@ -51,17 +51,7 @@ export function InstallAppCard() {
   }
 
   if (isInstalled) {
-    return (
-      <div className="rounded-3xl border bg-white p-4 shadow-sm sm:p-5">
-        <div className="flex items-start gap-3">
-          <span className="rounded-2xl bg-emerald-50 p-2 text-emerald-700"><Smartphone className="h-5 w-5" /></span>
-          <div>
-            <p className="text-sm font-semibold text-slate-950">App instalada</p>
-            <p className="mt-1 text-sm text-muted-foreground">Estás usando Gestión Total Casa en modo app.</p>
-          </div>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   return (

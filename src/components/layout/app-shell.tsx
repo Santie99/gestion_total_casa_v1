@@ -9,7 +9,6 @@ import {
   Flag,
   Home,
   Landmark,
-  Menu,
   ReceiptText,
   Settings,
   ShoppingCart,
@@ -57,6 +56,7 @@ const mobilePrimaryItems = [
   { href: "/compras", label: "Compras", icon: ClipboardList },
   { href: "/mercado", label: "Mercado", icon: ShoppingCart },
   { href: "/gastos", label: "Gastos", icon: ReceiptText },
+  { href: "/presupuestos", label: "Presup.", icon: Target },
   { href: "/menus", label: "Menús", icon: Utensils },
   { href: "/carro", label: "Carro", icon: Car },
   { href: "/objetivos", label: "Metas", icon: Flag },
@@ -119,9 +119,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <p className="text-xs text-muted-foreground">Gestión Total Casa</p>
             <h1 className="text-base font-bold text-slate-950">{currentItem?.label ?? "App"}</h1>
           </div>
-          <div className="rounded-2xl bg-slate-950 p-2 text-white">
-            <Menu className="h-5 w-5" />
-          </div>
+          <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">PWA</span>
         </div>
       </header>
 
