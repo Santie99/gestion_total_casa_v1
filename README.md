@@ -295,3 +295,21 @@ Para probar PWA real, desplegar en Vercel y abrir desde el celular. En iPhone se
 ## Sprint 14.1
 
 Sprint 14.1 corrige la experiencia móvil/PWA: elimina el menú hamburguesa inservible, remueve acciones rápidas y tarjeta de app instalada del dashboard, agrega Presupuestos al menú inferior y mejora `/compras` con carruseles horizontales para listas y grupos por proveedor. No requiere SQL.
+
+
+## Sprint 15 — Forecasting y simulaciones
+
+Sprint 15 agrega la ruta `/proyecciones` para proyectar los próximos 6 meses con escenarios base, optimista y pesimista.
+
+Incluye:
+
+- Promedios recientes de ingresos y gastos consolidados.
+- Compromisos mensuales de deuda.
+- Aportes requeridos a objetivos.
+- Caja líquida actual.
+- Forecast de caja por mes.
+- Stress testing doméstico.
+- Tendencia histórica reciente.
+- Acceso desde dashboard y navegación.
+
+No requiere migración SQL nueva.

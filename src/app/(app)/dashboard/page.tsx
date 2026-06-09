@@ -1,5 +1,6 @@
 export const dynamic = "force-dynamic";
 
+import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getCurrentMonthRange } from "@/lib/dates";
 import { formatCurrency, formatPercent } from "@/lib/formatters";
@@ -436,6 +437,26 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+
+      <Card className="border-blue-200 bg-blue-50">
+        <CardHeader>
+          <CardTitle>Proyecciones y simulaciones</CardTitle>
+          <CardDescription>
+            Sprint 15 agrega forecast de caja, escenarios y stress testing usando tus datos actuales.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-slate-700">
+              Revisa cómo podrían verse los próximos 6 meses bajo escenarios base, optimista y pesimista.
+            </p>
+            <Link href="/proyecciones" className="rounded-2xl bg-slate-950 px-4 py-2 text-center text-sm font-semibold text-white transition hover:bg-slate-800">
+              Ver proyecciones
+            </Link>
+          </div>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

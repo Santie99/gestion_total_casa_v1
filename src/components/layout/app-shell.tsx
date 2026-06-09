@@ -13,6 +13,7 @@ import {
   Settings,
   ShoppingCart,
   Target,
+  TrendingUp,
   Utensils,
   Wallet,
 } from "lucide-react";
@@ -31,6 +32,7 @@ const navGroups = [
       { href: "/ingresos", label: "Ingresos", shortLabel: "Ingresos", icon: Wallet },
       { href: "/gastos", label: "Gastos", shortLabel: "Gastos", icon: ReceiptText },
       { href: "/presupuestos", label: "Presupuestos", shortLabel: "Presup.", icon: Target },
+      { href: "/proyecciones", label: "Proyecciones", shortLabel: "Proy.", icon: TrendingUp },
       { href: "/objetivos", label: "Objetivos", shortLabel: "Metas", icon: Flag },
       { href: "/deudas", label: "Deudas", shortLabel: "Deudas", icon: CreditCard },
       { href: "/patrimonio", label: "Patrimonio", shortLabel: "Patrim.", icon: Landmark },
@@ -57,6 +59,7 @@ const mobilePrimaryItems = [
   { href: "/mercado", label: "Mercado", icon: ShoppingCart },
   { href: "/gastos", label: "Gastos", icon: ReceiptText },
   { href: "/presupuestos", label: "Presup.", icon: Target },
+  { href: "/proyecciones", label: "Proy.", icon: TrendingUp },
   { href: "/menus", label: "Menús", icon: Utensils },
   { href: "/carro", label: "Carro", icon: Car },
   { href: "/objetivos", label: "Metas", icon: Flag },
