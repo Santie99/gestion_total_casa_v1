@@ -191,7 +191,7 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-sm text-muted-foreground">Sprint 14 · PWA + experiencia móvil</p>
+        <p className="text-sm text-muted-foreground">Sprint 16 · Insights y recomendaciones</p>
         <h2 className="text-3xl font-bold tracking-tight">Dashboard ejecutivo</h2>
         <p className="mt-2 text-muted-foreground">
           Resumen de {context.familyName} para {month.label}. Integra gastos manuales, Mercado y Carro sin duplicarlos en gastos generales.
@@ -453,6 +453,25 @@ export default async function DashboardPage() {
             </p>
             <Link href="/proyecciones" className="rounded-2xl bg-slate-950 px-4 py-2 text-center text-sm font-semibold text-white transition hover:bg-slate-800">
               Ver proyecciones
+            </Link>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="border-purple-200 bg-purple-50">
+        <CardHeader>
+          <CardTitle>Insights y recomendaciones</CardTitle>
+          <CardDescription>
+            Sprint 16 agrega señales determinísticas para detectar riesgos, oportunidades y acciones prioritarias.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-purple-950">
+              Revisa alertas de flujo, presupuesto, stock, Mercado, deuda, objetivos y operación del hogar.
+            </p>
+            <Link href="/insights" className="rounded-2xl bg-slate-950 px-4 py-2 text-center text-sm font-semibold text-white transition hover:bg-slate-800">
+              Ver insights
             </Link>
           </div>
         </CardContent>

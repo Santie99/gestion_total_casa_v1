@@ -313,3 +313,18 @@ Incluye:
 - Acceso desde dashboard y navegación.
 
 No requiere migración SQL nueva.
+
+
+## Sprint 16
+
+Sprint 16 agrega insights y recomendaciones determinísticas:
+
+- Nueva ruta `/insights`.
+- Alertas por finanzas, mercado, stock, carro, objetivos, riesgo y operación.
+- Reglas internas sin IA externa.
+- Acción recomendada por insight.
+- Endpoint interno preparado para futura IA en `/api/insights/draft`.
+
+No requiere migración SQL.
+
+Consulta `docs/SPRINT_16.md` para detalles y pruebas.
