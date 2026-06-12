@@ -348,3 +348,25 @@ Incluye:
 No requiere migración SQL.
 
 Consulta `docs/SPRINT_17.md` para detalles y pruebas.
+
+## Sprint 18 — Seguridad, performance y hardening
+
+Sprint 18 refuerza la app para uso real continuo sin rediseñar pantallas ni romper los flujos actuales.
+
+Incluye:
+
+- Triggers anti cruce de familias en Supabase.
+- Función `public.is_family_member(uuid)`.
+- Índices para Dashboard, Reportes, Insights, Proyecciones, Mercado y Compras.
+- Checks defensivos `NOT VALID` para proteger datos nuevos sin bloquear históricos.
+- Validaciones compartidas en `src/lib/validation.ts`.
+- Tarjeta de resumen técnico en `/configuracion`.
+
+Migración obligatoria:
+
+```sql
+supabase/migrations/sprint_18.sql
+```
+
+No requiere cambios de variables de entorno ni dependencias nuevas.
+

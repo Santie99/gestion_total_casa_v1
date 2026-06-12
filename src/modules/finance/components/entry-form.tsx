@@ -8,6 +8,7 @@ import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { toDateInputValue } from "@/lib/dates";
 import { createClient } from "@/lib/supabase/client";
+import { normalizeOptionalText, parsePositiveNumber, requireIsoDateValue } from "@/lib/validation";
 import type { Category } from "../types";
 
 export function EntryForm({
@@ -33,22 +34,20 @@ export function EntryForm({
 
     const form = event.currentTarget;
     const formData = new FormData(form);
-    const amount = Number(formData.get("amount"));
-    const occurredOn = String(formData.get("occurred_on"));
+    let amount: number;
+    let occurredOn: string;
+
+    try {
+      amount = parsePositiveNumber(formData.get("amount"), "El monto debe ser mayor a cero.");
+      occurredOn = requireIsoDateValue(formData.get("occurred_on"), "Selecciona la fecha real del movimiento.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Revisa los datos del movimiento.");
+      setLoading(false);
+      return;
+    }
+
     const categoryId = String(formData.get("category_id") ?? "");
-    const description = String(formData.get("description") ?? "").trim();
-
-    if (!amount || amount <= 0) {
-      setError("El monto debe ser mayor a cero.");
-      setLoading(false);
-      return;
-    }
-
-    if (!occurredOn) {
-      setError("Selecciona la fecha real del movimiento.");
-      setLoading(false);
-      return;
-    }
+    const description = normalizeOptionalText(formData.get("description"));
 
     const supabase = createClient();
     const table = type === "income" ? "income_entries" : "expense_entries";
@@ -58,7 +57,7 @@ export function EntryForm({
       category_id: categoryId || null,
       amount,
       occurred_on: occurredOn,
-      description: description || null,
+      description,
       created_by: (await supabase.auth.getUser()).data.user?.id ?? null,
       ...(type === "expense" ? { source_module: "manual" } : {}),
     });

@@ -8,6 +8,7 @@ import { Select } from "@/components/ui/select";
 import { toDateInputValue } from "@/lib/dates";
 import { getFriendlyErrorMessage } from "@/lib/errors";
 import { createClient } from "@/lib/supabase/client";
+import { normalizeOptionalText, parsePositiveNumber, requireTextValue } from "@/lib/validation";
 import type { MarketProduct, MarketPurchase } from "../types";
 
 export function MarketItemForm({
@@ -35,11 +36,11 @@ export function MarketItemForm({
     const formData = new FormData(form);
     const marketPurchaseId = String(formData.get("market_purchase_id") ?? "");
     const productId = String(formData.get("product_id") ?? "");
-    const productName = String(formData.get("product_name") ?? "").trim();
-    const categoryName = String(formData.get("category_name") ?? "").trim();
-    const quantity = Number(formData.get("quantity"));
-    const unit = String(formData.get("unit") ?? "").trim();
-    const totalPrice = Number(formData.get("total_price"));
+    let productName: string;
+    let categoryName: string;
+    let quantity: number;
+    let unit: string;
+    let totalPrice: number;
     const updatesStock = formData.get("updates_stock") === "on";
 
     if (!marketPurchaseId) {
@@ -55,32 +56,14 @@ export function MarketItemForm({
       return;
     }
 
-    if (!productName) {
-      setError("Escribe el nombre del producto o selecciona un producto maestro.");
-      setLoading(false);
-      return;
-    }
-
-    if (!categoryName) {
-      setError("Escribe la categoría del producto para que el mercado pueda analizarse por rubros.");
-      setLoading(false);
-      return;
-    }
-
-    if (Number.isNaN(quantity) || quantity <= 0) {
-      setError("La cantidad debe ser mayor que cero.");
-      setLoading(false);
-      return;
-    }
-
-    if (!unit) {
-      setError("Escribe una unidad comparable: bolsa, kg, litro, unidad, etc.");
-      setLoading(false);
-      return;
-    }
-
-    if (Number.isNaN(totalPrice) || totalPrice <= 0) {
-      setError("El precio total debe ser mayor que cero.");
+    try {
+      productName = requireTextValue(formData.get("product_name"), "Escribe el nombre del producto o selecciona un producto maestro.");
+      categoryName = requireTextValue(formData.get("category_name"), "Escribe la categoría del producto para que el mercado pueda analizarse por rubros.");
+      quantity = parsePositiveNumber(formData.get("quantity"), "La cantidad debe ser mayor que cero.");
+      unit = requireTextValue(formData.get("unit"), "Escribe una unidad comparable: bolsa, kg, litro, unidad, etc.");
+      totalPrice = parsePositiveNumber(formData.get("total_price"), "El precio total debe ser mayor que cero.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Revisa los datos del producto.");
       setLoading(false);
       return;
     }
@@ -139,7 +122,7 @@ export function MarketItemForm({
               family_id: familyId,
               product_id: productId || null,
               product_name: productName,
-              category_name: categoryName || null,
+              category_name: normalizeOptionalText(categoryName),
               unit,
               quantity,
               min_quantity: 0,

@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { getFriendlyErrorMessage } from "@/lib/errors";
 import { createClient } from "@/lib/supabase/client";
+import { getSafeSelectValue, normalizeOptionalText, parsePositiveNumber, requireTextValue } from "@/lib/validation";
 import type { MarketProduct } from "@/modules/market/types";
 import type { ShoppingList } from "../types";
 
@@ -26,13 +27,13 @@ export function ShoppingManualItemForm({ familyId, lists, products }: { familyId
     const formData = new FormData(form);
     const shoppingListId = String(formData.get("shopping_list_id") ?? "");
     const productId = String(formData.get("product_id") ?? "");
-    const productName = String(formData.get("product_name") ?? "").trim();
-    const categoryName = String(formData.get("category_name") ?? "").trim();
-    const quantity = Number(formData.get("suggested_purchase_quantity"));
-    const unit = String(formData.get("unit") ?? "").trim();
-    const preferredVendor = String(formData.get("preferred_vendor") ?? "").trim();
-    const priority = String(formData.get("priority") ?? "normal");
-    const notes = String(formData.get("notes") ?? "").trim();
+    const categoryName = normalizeOptionalText(formData.get("category_name"));
+    const preferredVendor = normalizeOptionalText(formData.get("preferred_vendor"));
+    const priority = getSafeSelectValue(formData.get("priority"), ["low", "normal", "high"], "normal");
+    const notes = normalizeOptionalText(formData.get("notes"));
+    let productName: string;
+    let quantity: number;
+    let unit: string;
 
     if (!shoppingListId) {
       setError("Selecciona una lista de compras.");
@@ -40,20 +41,12 @@ export function ShoppingManualItemForm({ familyId, lists, products }: { familyId
       return;
     }
 
-    if (!productName) {
-      setError("Escribe el producto o selecciona un producto maestro.");
-      setLoading(false);
-      return;
-    }
-
-    if (Number.isNaN(quantity) || quantity <= 0) {
-      setError("La cantidad a comprar debe ser mayor que cero.");
-      setLoading(false);
-      return;
-    }
-
-    if (!unit) {
-      setError("Escribe la unidad: unidad, kg, libra, bolsa, litro, etc.");
+    try {
+      productName = requireTextValue(formData.get("product_name"), "Escribe el producto o selecciona un producto maestro.");
+      quantity = parsePositiveNumber(formData.get("suggested_purchase_quantity"), "La cantidad a comprar debe ser mayor que cero.");
+      unit = requireTextValue(formData.get("unit"), "Escribe la unidad: unidad, kg, libra, bolsa, litro, etc.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Revisa los datos del producto manual.");
       setLoading(false);
       return;
     }
@@ -65,15 +58,15 @@ export function ShoppingManualItemForm({ familyId, lists, products }: { familyId
         shopping_list_id: shoppingListId,
         product_id: productId || null,
         product_name: productName,
-        category_name: categoryName || null,
+        category_name: categoryName,
         needed_quantity: null,
         current_stock_quantity: null,
         suggested_purchase_quantity: quantity,
         unit,
         source: "manual",
-        priority: ["low", "normal", "high"].includes(priority) ? priority : "normal",
-        preferred_vendor: preferredVendor || null,
-        notes: notes || null,
+        priority,
+        preferred_vendor: preferredVendor,
+        notes,
       });
 
       if (insertError) throw insertError;

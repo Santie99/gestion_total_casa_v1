@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { MemberForm } from "@/modules/household/components/member-form";
 import { MemberList } from "@/modules/household/components/member-list";
 import { getCurrentFamily } from "@/modules/household/queries";
+import { HardeningSummaryCard } from "@/modules/system/components/hardening-summary-card";
 import type { FamilyMember } from "@/modules/household/types";
 
 export default async function ConfiguracionPage() {
@@ -85,6 +86,8 @@ export default async function ConfiguracionPage() {
           <MemberList members={(members ?? []) as FamilyMember[]} currentMemberId={context.memberId} />
         </CardContent>
       </Card>
+
+      <HardeningSummaryCard />
 
       <Card>
         <CardHeader>
