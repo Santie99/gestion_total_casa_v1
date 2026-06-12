@@ -191,7 +191,7 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-sm text-muted-foreground">Sprint 16 · Insights y recomendaciones</p>
+        <p className="text-sm text-muted-foreground">Sprint 17 · Reportes y auditoría</p>
         <h2 className="text-3xl font-bold tracking-tight">Dashboard ejecutivo</h2>
         <p className="mt-2 text-muted-foreground">
           Resumen de {context.familyName} para {month.label}. Integra gastos manuales, Mercado y Carro sin duplicarlos en gastos generales.
@@ -472,6 +472,25 @@ export default async function DashboardPage() {
             </p>
             <Link href="/insights" className="rounded-2xl bg-slate-950 px-4 py-2 text-center text-sm font-semibold text-white transition hover:bg-slate-800">
               Ver insights
+            </Link>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="border-emerald-200 bg-emerald-50">
+        <CardHeader>
+          <CardTitle>Reportes y auditoría</CardTitle>
+          <CardDescription>
+            Sprint 17 agrega reportes mensuales, exportación CSV, histórico reciente y revisión auditable de registros.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-emerald-950">
+              Revisa lo ocurrido por periodo, exporta movimientos y cruza la información con Insights y Proyecciones.
+            </p>
+            <Link href="/reportes" className="rounded-2xl bg-slate-950 px-4 py-2 text-center text-sm font-semibold text-white transition hover:bg-slate-800">
+              Ver reportes
             </Link>
           </div>
         </CardContent>

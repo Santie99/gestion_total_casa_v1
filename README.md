@@ -328,3 +328,23 @@ Sprint 16 agrega insights y recomendaciones determinísticas:
 No requiere migración SQL.
 
 Consulta `docs/SPRINT_16.md` para detalles y pruebas.
+
+## Sprint 17 — Reportes, exportaciones y auditoría
+
+Sprint 17 agrega la ruta `/reportes` para revisar el periodo mensual, exportar información y auditar registros sin modificar la lógica existente.
+
+Incluye:
+
+- Reporte financiero mensual consolidado.
+- Control presupuestal del periodo.
+- Reporte de Mercado por proveedor y producto.
+- Reporte de Carro por categoría.
+- Histórico reciente de 6 meses.
+- Foto rápida de operación y patrimonio.
+- Exportación CSV de resumen, histórico, auditoría, movimientos, mercado, carro y presupuestos.
+- Auditoría visual de registros con módulo, detalle, fecha operativa, fecha de creación, estado y valor.
+- Acceso desde dashboard y navegación desktop/móvil.
+
+No requiere migración SQL.
+
+Consulta `docs/SPRINT_17.md` para detalles y pruebas.
