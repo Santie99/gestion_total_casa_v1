@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/server";
 import { MemberForm } from "@/modules/household/components/member-form";
@@ -88,6 +89,23 @@ export default async function ConfiguracionPage() {
       </Card>
 
       <HardeningSummaryCard />
+
+      <Card className="border-slate-300 bg-slate-50">
+        <CardHeader>
+          <CardTitle>Guía inicial y cierre estable</CardTitle>
+          <CardDescription>Revisa el onboarding operativo, mapa de módulos y checklist final de producción.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-muted-foreground">
+              Sprint 19 no agrega datos demo ni SQL nuevo. La guía sirve para validar que la familia ya puede usar la PWA con datos reales.
+            </p>
+            <Link href="/guia" className="rounded-2xl bg-slate-950 px-4 py-2 text-center text-sm font-semibold text-white transition hover:bg-slate-800">
+              Abrir guía
+            </Link>
+          </div>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

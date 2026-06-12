@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  BookOpenCheck,
   Car,
   ClipboardList,
   CreditCard,
@@ -26,7 +27,10 @@ import { ServiceWorkerRegister } from "@/components/pwa/service-worker-register"
 const navGroups = [
   {
     title: "Inicio",
-    items: [{ href: "/dashboard", label: "Dashboard", shortLabel: "Inicio", icon: Home }],
+    items: [
+      { href: "/dashboard", label: "Dashboard", shortLabel: "Inicio", icon: Home },
+      { href: "/guia", label: "Guía inicial", shortLabel: "Guía", icon: BookOpenCheck },
+    ],
   },
   {
     title: "Finanzas",
@@ -59,6 +63,7 @@ const navGroups = [
 
 const mobilePrimaryItems = [
   { href: "/dashboard", label: "Inicio", icon: Home },
+  { href: "/guia", label: "Guía", icon: BookOpenCheck },
   { href: "/compras", label: "Compras", icon: ClipboardList },
   { href: "/mercado", label: "Mercado", icon: ShoppingCart },
   { href: "/gastos", label: "Gastos", icon: ReceiptText },

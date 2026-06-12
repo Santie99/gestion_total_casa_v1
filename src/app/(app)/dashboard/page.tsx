@@ -191,7 +191,7 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-sm text-muted-foreground">Sprint 17 · Reportes y auditoría</p>
+        <p className="text-sm text-muted-foreground">Sprint 19 · Versión estable</p>
         <h2 className="text-3xl font-bold tracking-tight">Dashboard ejecutivo</h2>
         <p className="mt-2 text-muted-foreground">
           Resumen de {context.familyName} para {month.label}. Integra gastos manuales, Mercado y Carro sin duplicarlos en gastos generales.
@@ -491,6 +491,25 @@ export default async function DashboardPage() {
             </p>
             <Link href="/reportes" className="rounded-2xl bg-slate-950 px-4 py-2 text-center text-sm font-semibold text-white transition hover:bg-slate-800">
               Ver reportes
+            </Link>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="border-slate-300 bg-slate-50">
+        <CardHeader>
+          <CardTitle>Guía inicial y versión estable</CardTitle>
+          <CardDescription>
+            Sprint 19 agrega onboarding operativo, mapa de módulos y checklist final sin crear datos de ejemplo.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-slate-700">
+              Usa esta guía para validar configuración mínima, flujos principales y estado de producción de la PWA.
+            </p>
+            <Link href="/guia" className="rounded-2xl bg-slate-950 px-4 py-2 text-center text-sm font-semibold text-white transition hover:bg-slate-800">
+              Ver guía
             </Link>
           </div>
         </CardContent>

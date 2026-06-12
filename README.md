@@ -370,3 +370,29 @@ supabase/migrations/sprint_18.sql
 
 No requiere cambios de variables de entorno ni dependencias nuevas.
 
+
+## Sprint 19 — Versión estable y guía inicial
+
+Sprint 19 cierra la primera versión estable del producto sin romper la lógica ni el diseño existente.
+
+Incluye:
+
+- Nueva ruta `/guia` con onboarding operativo.
+- Checklist inicial para validar configuración mínima de uso real.
+- Mapa completo de módulos disponibles.
+- Flujos recomendados: financiero mensual y mercado real.
+- Checklist final de versión estable.
+- Acceso desde Dashboard, Configuración, sidebar desktop y menú móvil.
+- Documentación de cierre en `docs/SPRINT_19.md`.
+
+No incluye datos de ejemplo opcionales ni semillas demo.
+
+No requiere migración SQL nueva.
+
+Prueba principal:
+
+1. Entrar a `/guia`.
+2. Revisar avance de configuración.
+3. Validar links hacia módulos.
+4. Revisar checklist final.
+5. Confirmar que la PWA sigue navegando correctamente en celular.

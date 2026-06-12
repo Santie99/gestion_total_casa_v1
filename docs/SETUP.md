@@ -117,3 +117,17 @@ En producción:
 2. Crea una familia nueva.
 3. Verifica que entres al dashboard.
 4. Revisa en Supabase que se haya creado una fila en `families` y otra en `family_members`.
+
+## 9. Validación de versión estable
+
+Después de aplicar todos los sprints hasta Sprint 19, valida también:
+
+- `/guia`: onboarding operativo y mapa de módulos.
+- `/compras`: listas manuales/inteligentes, proveedor por producto y conversión parcial.
+- `/mercado`: compra real, stock e histórico de precios.
+- `/proyecciones`: escenarios y stress testing.
+- `/insights`: reglas determinísticas y acción prioritaria.
+- `/reportes`: reportes mensuales y exportación CSV.
+- `/configuracion`: miembros, categorías y estado técnico.
+
+Sprint 19 no agrega datos de ejemplo ni migración SQL nueva.
