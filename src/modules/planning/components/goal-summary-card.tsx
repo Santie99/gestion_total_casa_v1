@@ -4,7 +4,7 @@ import type { GoalSummary } from "../types";
 
 export function GoalSummaryCards({ summary }: { summary: GoalSummary }) {
   return (
-    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+    <div className="mobile-summary-carousel md:grid md:grid-cols-2 xl:grid-cols-4">
       <Card>
         <CardHeader>
           <CardDescription>Objetivos activos</CardDescription>

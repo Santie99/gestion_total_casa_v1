@@ -64,6 +64,7 @@ const navGroups = [
 const mobilePrimaryItems = [
   { href: "/dashboard", label: "Inicio", icon: Home },
   { href: "/guia", label: "Guía", icon: BookOpenCheck },
+  { href: "/ingresos", label: "Ingresos", icon: Wallet },
   { href: "/compras", label: "Compras", icon: ClipboardList },
   { href: "/mercado", label: "Mercado", icon: ShoppingCart },
   { href: "/gastos", label: "Gastos", icon: ReceiptText },
@@ -90,14 +91,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <ServiceWorkerRegister />
       <OfflineBanner />
 
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-72 border-r bg-white/95 p-5 shadow-sm backdrop-blur lg:block">
-        <div className="mb-7 rounded-3xl bg-slate-950 p-4 text-white shadow-sm">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-72 flex-col border-r bg-white/95 p-5 shadow-sm backdrop-blur lg:flex">
+        <div className="mb-5 shrink-0 rounded-3xl bg-slate-950 p-4 text-white shadow-sm">
           <p className="text-xs uppercase tracking-[0.25em] text-slate-300">Gestión Total</p>
           <h1 className="mt-1 text-xl font-bold">Casa</h1>
           <p className="mt-2 text-xs text-slate-300">Finanzas + operación familiar</p>
         </div>
 
-        <nav className="space-y-5 pb-24">
+        <nav className="min-h-0 flex-1 space-y-5 overflow-y-auto pr-1 pb-5 [scrollbar-width:thin]">
           {navGroups.map((group) => (
             <div key={group.title} className="space-y-2">
               <p className="px-3 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">{group.title}</p>
@@ -122,7 +123,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           ))}
         </nav>
 
-        <div className="absolute bottom-5 left-5 right-5">
+        <div className="shrink-0 border-t pt-4">
           <LogoutButton />
         </div>
       </aside>

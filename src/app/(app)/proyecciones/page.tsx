@@ -207,7 +207,6 @@ export default async function ProyeccionesPage() {
     <div className="space-y-6">
       <section className="overflow-hidden rounded-[2rem] bg-slate-950 p-6 text-white shadow-sm md:p-8">
         <div className="max-w-3xl">
-          <p className="text-sm font-semibold uppercase tracking-[0.25em] text-slate-400">Sprint 15 · Forecasting</p>
           <h1 className="mt-3 text-3xl font-bold tracking-tight md:text-4xl">Proyecciones y simulaciones</h1>
           <p className="mt-3 text-sm leading-6 text-slate-300 md:text-base">
             Estima los próximos 6 meses usando ingresos, gastos consolidados, deuda, objetivos y liquidez actual. Es una herramienta de planeación, no una predicción garantizada.

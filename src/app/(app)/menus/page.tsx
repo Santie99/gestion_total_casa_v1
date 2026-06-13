@@ -115,14 +115,13 @@ export default async function MenusPage() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-sm text-muted-foreground">Sprint 10 · Menús nutricionales base</p>
         <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Menús</h2>
         <p className="mt-2 text-sm text-muted-foreground sm:text-base">
           Perfiles nutricionales, base nutricional de productos y planificación familiar de comidas. Esta versión aún no descuenta stock automáticamente.
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="mobile-summary-carousel sm:grid sm:grid-cols-2 xl:grid-cols-4">
         <MenuSummaryCard title="Perfiles" value={`${activeMembersWithProfiles}/${members.filter((member) => member.is_active).length}`} description="Miembros activos con requerimientos configurados." />
         <MenuSummaryCard title="Productos nutridos" value={String(productsWithNutrition)} description="Productos maestros con calorías y proteína." />
         <MenuSummaryCard title="Menús próximos" value={String(plansWithDetails.length)} description="Comidas planeadas para los próximos 14 días." />

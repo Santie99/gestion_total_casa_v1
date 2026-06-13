@@ -342,7 +342,6 @@ export default async function ReportsPage({ searchParams }: { searchParams?: Rep
       <section className="overflow-hidden rounded-[2rem] bg-slate-950 p-6 text-white shadow-sm md:p-8">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-3xl">
-            <p className="text-sm font-semibold uppercase tracking-[0.25em] text-slate-400">Sprint 17 · Reportes</p>
             <h1 className="mt-3 text-3xl font-bold tracking-tight md:text-4xl">Reportes, exportaciones y auditoría</h1>
             <p className="mt-3 text-sm leading-6 text-slate-300 md:text-base">
               Vista mensual consolidada para revisar finanzas, operación del hogar, histórico reciente y registros auditables sin modificar datos existentes.

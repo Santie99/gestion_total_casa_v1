@@ -5,7 +5,7 @@ export function AiReadinessCard() {
     <Card className="border-purple-200 bg-purple-50">
       <CardHeader>
         <CardTitle>Endpoint IA preparado</CardTitle>
-        <CardDescription>Sprint 16 no conecta IA externa. Solo deja lista la estructura interna para una capa futura.</CardDescription>
+        <CardDescription>No conecta IA externa. Solo deja lista la estructura interna para una capa futura.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-3 text-sm text-purple-950">
         <p>

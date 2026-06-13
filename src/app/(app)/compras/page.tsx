@@ -134,7 +134,6 @@ export default async function ShoppingPage() {
   return (
     <div className="space-y-6">
       <div className="rounded-[2rem] border bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 p-5 text-white shadow-sm sm:p-7">
-        <p className="text-xs font-semibold uppercase tracking-[0.28em] text-white/50">Sprint 14.1 · Modo compra móvil</p>
         <h2 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">Compras</h2>
         <p className="mt-3 max-w-3xl text-sm leading-6 text-white/70 sm:text-base">
           Crea listas generales, agrupa productos por lugar de compra y convierte solo los productos comprados de cada proveedor en compras reales de Mercado con stock automático.

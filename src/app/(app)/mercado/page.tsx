@@ -114,28 +114,27 @@ export default async function MercadoPage({ searchParams }: { searchParams: Prom
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-sm text-muted-foreground">Sprint 5 · Mercado, precios completos y stock</p>
         <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Mercado</h2>
         <p className="mt-2 text-sm text-muted-foreground sm:text-base">Quincenas flexibles, facturas, productos maestros, histórico completo de precios y stock en casa.</p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="mobile-summary-carousel sm:grid sm:grid-cols-2 xl:grid-cols-4">
         <MarketSummaryCard title="Total quincena" value={formatCurrency(selectedTotal)} description={selectedPeriod?.name ?? "Crea una quincena para empezar."} />
         <MarketSummaryCard title="Compras" value={String(selectedPurchases.length)} description={`${purchaseMix.main} principales · ${purchaseMix.sporadic} esporádicas`} />
         <MarketSummaryCard title="Productos" value={String(selectedItems.length)} description="Productos registrados en la quincena seleccionada." />
         <MarketSummaryCard title="Promedio por compra" value={formatCurrency(averagePurchase)} description="Total de la quincena dividido en compras registradas." />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="mobile-summary-carousel sm:grid sm:grid-cols-2 xl:grid-cols-4">
         <StockSummaryCard title="Stock activo" value={String(stockStats.total)} description="Productos con inventario activo en casa." />
         <StockSummaryCard title="Stock bajo" value={String(stockStats.low)} description="Productos en o por debajo del mínimo definido." />
         <StockSummaryCard title="Agotados" value={String(stockStats.empty)} description="Productos con cantidad disponible igual a cero." />
         <StockSummaryCard title="Stock sano" value={String(stockStats.healthy)} description="Productos por encima de su mínimo." />
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[360px_1fr]">
-        <div className="space-y-6">
-          <Card>
+      <div className="mobile-panel-carousel xl:grid xl:grid-cols-[360px_1fr] xl:gap-6">
+        <div className="mobile-panel-group space-y-6">
+          <Card className="mobile-panel-item">
             <CardHeader>
               <CardTitle>Crear quincena</CardTitle>
               <CardDescription>Define rangos flexibles. No tienen que ser del 1 al 15 exactamente.</CardDescription>
@@ -145,7 +144,7 @@ export default async function MercadoPage({ searchParams }: { searchParams: Prom
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="mobile-panel-item">
             <CardHeader>
               <CardTitle>Quincenas</CardTitle>
               <CardDescription>Selecciona una quincena para ver y registrar compras.</CardDescription>
@@ -155,7 +154,7 @@ export default async function MercadoPage({ searchParams }: { searchParams: Prom
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="mobile-panel-item">
             <CardHeader>
               <CardTitle>Productos maestros</CardTitle>
               <CardDescription>Normaliza productos para comparar precios y preparar stock.</CardDescription>
@@ -166,7 +165,7 @@ export default async function MercadoPage({ searchParams }: { searchParams: Prom
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="mobile-panel-item">
             <CardHeader>
               <CardTitle>Stock inicial</CardTitle>
               <CardDescription>Crea inventario manual para productos que ya tienes en casa.</CardDescription>
@@ -177,9 +176,9 @@ export default async function MercadoPage({ searchParams }: { searchParams: Prom
           </Card>
         </div>
 
-        <div className="space-y-6">
-          <div className="grid gap-6 lg:grid-cols-2">
-            <Card>
+        <div className="mobile-panel-group space-y-6">
+          <div className="mobile-panel-group grid gap-6 lg:grid-cols-2">
+            <Card className="mobile-panel-item">
               <CardHeader>
                 <CardTitle>Crear factura manual</CardTitle>
                 <CardDescription>Opcional. Sirve para asociar una factura física a una compra.</CardDescription>
@@ -189,7 +188,7 @@ export default async function MercadoPage({ searchParams }: { searchParams: Prom
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="mobile-panel-item">
               <CardHeader>
                 <CardTitle>Registrar compra</CardTitle>
                 <CardDescription>Crea una compra principal o esporádica dentro de una quincena.</CardDescription>
@@ -200,7 +199,7 @@ export default async function MercadoPage({ searchParams }: { searchParams: Prom
             </Card>
           </div>
 
-          <Card>
+          <Card className="mobile-panel-item">
             <CardHeader>
               <CardTitle>Agregar producto comprado</CardTitle>
               <CardDescription>El precio unitario se calcula automáticamente desde cantidad y precio total.</CardDescription>
@@ -210,7 +209,7 @@ export default async function MercadoPage({ searchParams }: { searchParams: Prom
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="mobile-panel-item">
             <CardHeader>
               <CardTitle>{selectedPeriod ? `Detalle · ${selectedPeriod.name}` : "Detalle de compras"}</CardTitle>
               <CardDescription>El total de la quincena sale de los productos registrados. No se ingresa manualmente.</CardDescription>
@@ -220,8 +219,8 @@ export default async function MercadoPage({ searchParams }: { searchParams: Prom
             </CardContent>
           </Card>
 
-          <div className="grid gap-6 lg:grid-cols-2">
-            <Card>
+          <div className="mobile-panel-group grid gap-6 lg:grid-cols-2">
+            <Card className="mobile-panel-item">
               <CardHeader>
                 <CardTitle>Stock en casa</CardTitle>
                 <CardDescription>Inventario actual. Las compras marcadas para stock entran automáticamente.</CardDescription>
@@ -231,7 +230,7 @@ export default async function MercadoPage({ searchParams }: { searchParams: Prom
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="mobile-panel-item">
               <CardHeader>
                 <CardTitle>Movimiento de stock</CardTitle>
                 <CardDescription>Registra consumos, salidas o ajustes manuales.</CardDescription>
@@ -242,7 +241,7 @@ export default async function MercadoPage({ searchParams }: { searchParams: Prom
             </Card>
           </div>
 
-          <Card>
+          <Card className="mobile-panel-item">
             <CardHeader>
               <CardTitle>Movimientos recientes de stock</CardTitle>
               <CardDescription>Entradas automáticas desde compras, stock inicial y consumos manuales.</CardDescription>
@@ -252,7 +251,7 @@ export default async function MercadoPage({ searchParams }: { searchParams: Prom
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="mobile-panel-item">
             <CardHeader>
               <CardTitle>Histórico de precios por producto</CardTitle>
               <CardDescription>Detalle completo por producto y misma unidad. Cada fila muestra variación frente a la compra anterior.</CardDescription>

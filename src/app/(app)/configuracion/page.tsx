@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { MemberForm } from "@/modules/household/components/member-form";
 import { MemberList } from "@/modules/household/components/member-list";
 import { getCurrentFamily } from "@/modules/household/queries";
+import { ThemeSettingsCard } from "@/components/theme-settings-card";
 import { HardeningSummaryCard } from "@/modules/system/components/hardening-summary-card";
 import type { FamilyMember } from "@/modules/household/types";
 
@@ -30,10 +31,11 @@ export default async function ConfiguracionPage() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-sm text-muted-foreground">Sprint 3 · Configuración familiar</p>
         <h2 className="text-3xl font-bold tracking-tight">Configuración</h2>
         <p className="mt-2 text-muted-foreground">Administra miembros internos, familia activa y categorías transversales.</p>
       </div>
+
+      <ThemeSettingsCard />
 
       <div className="grid gap-6 lg:grid-cols-3">
         <Card>
@@ -68,7 +70,7 @@ export default async function ConfiguracionPage() {
         <Card>
           <CardHeader>
             <CardTitle>Regla actual</CardTitle>
-            <CardDescription>Gestión de miembros Sprint 3.</CardDescription>
+            <CardDescription>Gestión de miembros familiares.</CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
@@ -93,12 +95,12 @@ export default async function ConfiguracionPage() {
       <Card className="border-slate-300 bg-slate-50">
         <CardHeader>
           <CardTitle>Guía inicial y cierre estable</CardTitle>
-          <CardDescription>Revisa el onboarding operativo, mapa de módulos y checklist final de producción.</CardDescription>
+          <CardDescription>Revisa el onboarding operativo, mapa de módulos y validación operativa.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-muted-foreground">
-              Sprint 19 no agrega datos demo ni SQL nuevo. La guía sirve para validar que la familia ya puede usar la PWA con datos reales.
+              La guía sirve para validar que la familia ya puede usar la PWA con datos reales.
             </p>
             <Link href="/guia" className="rounded-2xl bg-slate-950 px-4 py-2 text-center text-sm font-semibold text-white transition hover:bg-slate-800">
               Abrir guía

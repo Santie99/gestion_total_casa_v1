@@ -191,14 +191,13 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-sm text-muted-foreground">Sprint 19 · Versión estable</p>
         <h2 className="text-3xl font-bold tracking-tight">Dashboard ejecutivo</h2>
         <p className="mt-2 text-muted-foreground">
           Resumen de {context.familyName} para {month.label}. Integra gastos manuales, Mercado y Carro sin duplicarlos en gastos generales.
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="mobile-summary-carousel md:grid md:grid-cols-2 xl:grid-cols-4">
         <SummaryCard title="Ingresos del mes" value={incomeTotal} description="Entradas registradas con fecha real dentro del mes." tone="positive" />
         <SummaryCard title="Gasto consolidado" value={consolidatedExpenses} description="Manual + Mercado + Carro. Esta es la lectura real del gasto mensual." tone="negative" />
         <SummaryCard
@@ -221,7 +220,7 @@ export default async function DashboardPage() {
       </div>
 
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="mobile-summary-carousel md:grid md:grid-cols-2 xl:grid-cols-4">
         <Card>
           <CardHeader>
             <CardDescription>Activos registrados</CardDescription>
@@ -261,7 +260,7 @@ export default async function DashboardPage() {
         healthScore={financialHealthScore}
       />
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="mobile-summary-carousel md:grid md:grid-cols-2 xl:grid-cols-4">
         <Card>
           <CardHeader>
             <CardDescription>Objetivos activos</CardDescription>
@@ -298,7 +297,7 @@ export default async function DashboardPage() {
           <CardDescription>Separa las capas para evitar doble conteo: lo operativo se suma al dashboard, pero no se duplica en gastos manuales.</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="mobile-summary-carousel md:grid md:grid-cols-3">
             {layers.map((layer) => {
               const percentage = consolidatedExpenses > 0 ? layer.amount / consolidatedExpenses : 0;
               return (
@@ -443,7 +442,7 @@ export default async function DashboardPage() {
         <CardHeader>
           <CardTitle>Proyecciones y simulaciones</CardTitle>
           <CardDescription>
-            Sprint 15 agrega forecast de caja, escenarios y stress testing usando tus datos actuales.
+            Forecast de caja, escenarios y stress testing usando tus datos actuales.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -462,7 +461,7 @@ export default async function DashboardPage() {
         <CardHeader>
           <CardTitle>Insights y recomendaciones</CardTitle>
           <CardDescription>
-            Sprint 16 agrega señales determinísticas para detectar riesgos, oportunidades y acciones prioritarias.
+            Señales determinísticas para detectar riesgos, oportunidades y acciones prioritarias.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -481,7 +480,7 @@ export default async function DashboardPage() {
         <CardHeader>
           <CardTitle>Reportes y auditoría</CardTitle>
           <CardDescription>
-            Sprint 17 agrega reportes mensuales, exportación CSV, histórico reciente y revisión auditable de registros.
+            Reportes mensuales, exportación CSV, histórico reciente y revisión auditable de registros.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -500,7 +499,7 @@ export default async function DashboardPage() {
         <CardHeader>
           <CardTitle>Guía inicial y versión estable</CardTitle>
           <CardDescription>
-            Sprint 19 agrega onboarding operativo, mapa de módulos y checklist final sin crear datos de ejemplo.
+            Onboarding operativo y mapa completo de módulos sin crear datos de ejemplo.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -521,7 +520,7 @@ export default async function DashboardPage() {
           <CardDescription>Interpretación simple del mes con gasto consolidado.</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <div className="mobile-summary-carousel md:grid md:grid-cols-2 xl:grid-cols-4">
             <div className="rounded-2xl bg-slate-50 p-4">
               <p className="text-sm font-semibold">Free Cash Flow Familiar</p>
               <p className="mt-1 text-sm text-muted-foreground">

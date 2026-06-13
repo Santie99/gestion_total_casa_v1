@@ -37,14 +37,13 @@ export default async function IngresosPage() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-sm text-muted-foreground">Sprint 2 · Finanzas base</p>
         <h2 className="text-3xl font-bold tracking-tight">Ingresos</h2>
         <p className="mt-2 text-muted-foreground">
           Registro de entradas de dinero con fecha real y consolidación mensual automática.
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="mobile-summary-carousel md:grid md:grid-cols-3">
         <Card>
           <CardHeader>
             <CardDescription>Total del mes</CardDescription>

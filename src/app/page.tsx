@@ -10,7 +10,7 @@ export default function HomePage() {
           <p className="mb-3 text-sm font-medium text-muted-foreground">Gestión Total del Hogar</p>
           <h1 className="mb-4 text-4xl font-bold tracking-tight sm:text-6xl">Administra tu hogar como una operación inteligente.</h1>
           <p className="mb-8 text-base text-muted-foreground sm:text-lg">
-            Finanzas familiares, mercado, stock, carro, objetivos y decisiones con enfoque CFO. Sprint 1: base técnica, login y estructura modular.
+            Finanzas familiares, mercado, stock, carro, objetivos y decisiones con enfoque CFO.
           </p>
           <div className="flex flex-col justify-center gap-3 sm:flex-row">
             <Button asChild>

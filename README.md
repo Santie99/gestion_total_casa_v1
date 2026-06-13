@@ -396,3 +396,19 @@ Prueba principal:
 3. Validar links hacia módulos.
 4. Revisar checklist final.
 5. Confirmar que la PWA sigue navegando correctamente en celular.
+
+## Sprint 20
+
+Sprint de correcciones para salida a producción con usuarios cercanos.
+
+Cambios principales:
+
+- Menú lateral desktop con scroll vertical.
+- Eliminación de textos internos de sprint en la interfaz.
+- Guía simplificada sin checklist final de producción.
+- Ingresos agregado al menú inferior móvil.
+- Carruseles móviles de tarjetas resumen en Inicio, Mercado, Gastos, Presupuestos, Menús, Carro, Metas e Ingresos.
+- Mercado con flujo móvil horizontal para formularios y paneles operativos.
+- Selector de apariencia en Configuración: claro, oscuro o automático por hora local.
+
+No requiere migración SQL nueva.

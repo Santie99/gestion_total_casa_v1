@@ -57,14 +57,13 @@ export default async function CarPage() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-sm text-muted-foreground">Sprint 6 · Operaciones del hogar</p>
         <h2 className="text-3xl font-bold tracking-tight">Carro</h2>
         <p className="mt-2 text-muted-foreground">
           Gastos, vehículos, mantenimientos y vencimientos. Esta sección inicia la operación del carro sin mezclar todavía sus datos con Mercado.
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="mobile-summary-carousel md:grid md:grid-cols-2 xl:grid-cols-4">
         <CarSummaryCard title="Gasto del mes" value={total} description={`Gastos de carro registrados en ${month.label}.`} />
         <CarSummaryCard title="Vehículos activos" value={String(vehicles.length)} description="Vehículos disponibles para asociar gastos y vencimientos." />
         <CarSummaryCard title="Gasolina" value={gasolineTotal} description="Subtotal de combustible del mes." />

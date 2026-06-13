@@ -44,7 +44,6 @@ export default async function ObjetivosPage() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-sm text-muted-foreground">Sprint 9 · Planeación y objetivos estratégicos</p>
         <h2 className="text-3xl font-bold tracking-tight">Objetivos financieros</h2>
         <p className="mt-2 text-muted-foreground">
           Define metas, registra aportes y revisa si el ritmo actual alcanza para cumplirlas. Familia: {context.familyName}.

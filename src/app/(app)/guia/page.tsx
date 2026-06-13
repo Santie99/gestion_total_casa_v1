@@ -7,7 +7,6 @@ import { getCurrentFamily } from "@/modules/household/queries";
 import { AppFlowGuide } from "@/modules/system/components/app-flow-guide";
 import { ModuleMapCard } from "@/modules/system/components/module-map-card";
 import { OnboardingProgressCard, type OnboardingStep } from "@/modules/system/components/onboarding-progress-card";
-import { StableReleaseChecklist } from "@/modules/system/components/stable-release-checklist";
 
 async function getCount(table: string, familyId: string, extra?: (query: any) => any) {
   const supabase = await createClient();
@@ -142,11 +141,9 @@ export default async function GuiaPage() {
   return (
     <div className="space-y-6">
       <div className="rounded-[2rem] bg-slate-950 p-6 text-white shadow-sm md:p-8">
-        <p className="text-sm text-slate-300">Sprint 19 · Versión estable</p>
         <h2 className="mt-2 text-3xl font-bold tracking-tight">Guía inicial y cierre operativo</h2>
         <p className="mt-3 max-w-3xl text-sm text-slate-300">
-          Punto de control final para usar Gestión Total Casa como app familiar: configuración mínima, flujos recomendados,
-          checklist de estabilidad y mapa completo de módulos. No incluye datos demo ni semillas de ejemplo.
+          Punto de control para usar Gestión Total Casa como app familiar: configuración mínima, flujos recomendados y mapa completo de módulos. No incluye datos demo ni semillas de ejemplo.
         </p>
         <div className="mt-5 flex flex-col gap-3 sm:flex-row">
           <Link href="/dashboard" className="rounded-2xl bg-white px-4 py-2 text-center text-sm font-semibold text-slate-950 transition hover:bg-slate-100">
@@ -173,13 +170,11 @@ export default async function GuiaPage() {
                   <p className="text-sm text-muted-foreground">{context.memberName} · {context.role}</p>
                 </div>
                 <div className="rounded-2xl bg-slate-50 p-4">
-                  <p className="text-sm font-semibold">Estado de Sprint 19</p>
-                  <p className="text-sm text-muted-foreground">Cierre estable sin migración SQL y sin datos de ejemplo.</p>
+                  <p className="text-sm text-muted-foreground">Versión estable sin datos de ejemplo.</p>
                 </div>
               </div>
             </CardContent>
           </Card>
-          <StableReleaseChecklist />
         </div>
       </div>
 

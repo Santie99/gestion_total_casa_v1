@@ -29,7 +29,7 @@ export function HardeningSummaryCard() {
     <Card>
       <CardHeader>
         <CardTitle>Hardening técnico</CardTitle>
-        <CardDescription>Sprint 18 · Seguridad, performance e integridad de datos.</CardDescription>
+        <CardDescription>Seguridad, performance e integridad de datos.</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
@@ -44,7 +44,7 @@ export function HardeningSummaryCard() {
           ))}
         </div>
         <p className="mt-4 text-xs text-muted-foreground">
-          Esta tarjeta solo resume el estado técnico. La protección real queda en Supabase con la migración de Sprint 18.
+          Esta tarjeta solo resume el estado técnico. La protección real queda en Supabase con las migraciones de hardening.
         </p>
       </CardContent>
     </Card>

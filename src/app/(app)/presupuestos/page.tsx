@@ -72,14 +72,13 @@ export default async function PresupuestosPage() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-sm text-muted-foreground">Sprint 7 · Planeación financiera base</p>
         <h2 className="text-3xl font-bold tracking-tight">Presupuestos</h2>
         <p className="mt-2 text-muted-foreground">
           Controla límites mensuales por gasto total, gastos manuales, Mercado y Carro. Periodo actual: {month.label}.
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="mobile-summary-carousel md:grid md:grid-cols-2 xl:grid-cols-4">
         <Card>
           <CardHeader>
             <CardDescription>Gasto total consolidado</CardDescription>

@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { ThemeRuntime } from "@/components/theme-runtime";
 
 export const metadata: Metadata = {
   title: "Gestión Total Casa",
@@ -34,7 +35,10 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="es">
-      <body>{children}</body>
+      <body>
+        <ThemeRuntime />
+        {children}
+      </body>
     </html>
   );
 }

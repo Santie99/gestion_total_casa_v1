@@ -43,7 +43,6 @@ export default async function PatrimonioPage() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-sm text-muted-foreground">Sprint 8 · Gestión patrimonial</p>
         <h2 className="text-3xl font-bold tracking-tight">Patrimonio</h2>
         <p className="mt-2 text-muted-foreground">Balance de activos, deudas y patrimonio neto de {context.familyName}.</p>
       </div>

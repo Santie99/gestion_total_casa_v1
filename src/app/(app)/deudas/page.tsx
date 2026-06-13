@@ -53,7 +53,6 @@ export default async function DeudasPage() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-sm text-muted-foreground">Sprint 8 · Gestión de deuda</p>
         <h2 className="text-3xl font-bold tracking-tight">Deudas</h2>
         <p className="mt-2 text-muted-foreground">Registra obligaciones, cuotas y riesgo de sobreendeudamiento de {context.familyName}.</p>
       </div>

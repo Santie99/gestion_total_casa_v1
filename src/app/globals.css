@@ -71,3 +71,124 @@ button, a, input, select, textarea {
     @apply text-sm text-muted-foreground;
   }
 }
+
+html[data-theme="dark"] {
+  --background: 222 47% 7%;
+  --foreground: 210 40% 96%;
+  --card: 222 47% 11%;
+  --card-foreground: 210 40% 96%;
+  --muted: 217 33% 17%;
+  --muted-foreground: 215 20% 72%;
+  --border: 217 33% 22%;
+  --primary: 210 40% 96%;
+  --primary-foreground: 222 47% 11%;
+}
+
+html[data-theme="dark"] .bg-white,
+html[data-theme="dark"] .bg-white\/90,
+html[data-theme="dark"] .bg-white\/95,
+html[data-theme="dark"] .bg-white\/80 {
+  background-color: rgb(15 23 42 / 0.94) !important;
+}
+
+html[data-theme="dark"] .bg-slate-50,
+html[data-theme="dark"] .bg-slate-100 {
+  background-color: rgb(30 41 59 / 0.92) !important;
+}
+
+html[data-theme="dark"] .bg-slate-950 {
+  background-color: rgb(2 6 23) !important;
+}
+
+html[data-theme="dark"] .text-slate-950,
+html[data-theme="dark"] .text-slate-800,
+html[data-theme="dark"] .text-slate-700,
+html[data-theme="dark"] .text-slate-600 {
+  color: rgb(226 232 240) !important;
+}
+
+html[data-theme="dark"] .text-slate-500,
+html[data-theme="dark"] .text-slate-400,
+html[data-theme="dark"] .text-muted-foreground {
+  color: rgb(148 163 184) !important;
+}
+
+html[data-theme="dark"] .border,
+html[data-theme="dark"] .border-t,
+html[data-theme="dark"] .border-r,
+html[data-theme="dark"] .border-b,
+html[data-theme="dark"] .border-slate-200,
+html[data-theme="dark"] .border-slate-300 {
+  border-color: rgb(51 65 85) !important;
+}
+
+html[data-theme="dark"] input,
+html[data-theme="dark"] select,
+html[data-theme="dark"] textarea {
+  background-color: rgb(15 23 42) !important;
+  color: rgb(226 232 240) !important;
+  border-color: rgb(51 65 85) !important;
+}
+
+html[data-theme="dark"] ::placeholder {
+  color: rgb(100 116 139) !important;
+}
+
+@layer components {
+  .mobile-summary-carousel {
+    @apply flex gap-4 overflow-x-auto pb-2 pr-4 [scrollbar-width:none] snap-x snap-mandatory;
+    margin-right: -1rem;
+  }
+
+  .mobile-summary-carousel::-webkit-scrollbar,
+  .mobile-panel-carousel::-webkit-scrollbar {
+    display: none;
+  }
+
+  .mobile-summary-carousel > * {
+    @apply min-w-[17rem] flex-[0_0_82%] snap-start;
+  }
+
+  .mobile-panel-carousel {
+    @apply flex gap-4 overflow-x-auto pb-2 pr-4 [scrollbar-width:none] snap-x snap-mandatory;
+    margin-right: -1rem;
+  }
+
+  .mobile-panel-group {
+    display: contents;
+  }
+
+  .mobile-panel-item {
+    @apply min-w-[88vw] flex-[0_0_88vw] snap-start;
+  }
+
+  @screen sm {
+    .mobile-summary-carousel {
+      margin-right: 0;
+      padding-right: 0;
+      overflow: visible;
+    }
+
+    .mobile-summary-carousel > * {
+      min-width: 0;
+      flex: initial;
+    }
+  }
+
+  @screen xl {
+    .mobile-panel-carousel {
+      margin-right: 0;
+      padding-right: 0;
+      overflow: visible;
+    }
+
+    .mobile-panel-group {
+      display: block;
+    }
+
+    .mobile-panel-item {
+      min-width: 0;
+      flex: initial;
+    }
+  }
+}
